@@ -1,0 +1,22 @@
+{
+  "name": "sgl-mockup",
+  "version": "1.0.0",
+  "description": "Sistema de gestión legal mockup - Plataforma de agendamiento de consultas para estudio jurídico",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ManuDve/sgl-mockup.git"
+  },
+  "keywords": [
+    "estudio",
+    "juridico",
+    "agendamiento",
+    "sistema-gestion"
+  ],
+  "author": "Manuel Dve",
+  "license": "MIT"
+}
