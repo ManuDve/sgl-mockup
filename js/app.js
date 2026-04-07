@@ -519,9 +519,6 @@ function renderizar() {
                         <h3 class="text-lg font-semibold text-gray-900">¿Necesitas cambiar tu cita?</h3>
                         <p class="text-sm text-gray-600 mt-1">Reagenda o cancela tu consulta usando el enlace que recibiste por WhatsApp o correo.</p>
                         <div class="mt-4 flex gap-3 flex-wrap">
-                            <button onclick="irGestionWeb()" class="bg-white border text-gray-900 px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
-                                Reagendar o cancelar
-                            </button>
                             <button onclick="irAdminLogin()" class="text-gray-700 hover:text-gray-900 font-medium text-sm">
                                 <i class="fas fa-lock"></i>
                                 Acceso administrador
