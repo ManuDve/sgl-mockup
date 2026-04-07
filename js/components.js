@@ -692,7 +692,6 @@ const Components = {
 
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
                         <button onclick="navegar('home')" class="bg-gray-900 text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition">Volver al inicio</button>
-                        <button onclick="irGestionWeb()" class="bg-white border text-gray-900 px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition">Gestionar otra cita</button>
                     </div>
                 </div>
             </div>
