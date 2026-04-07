@@ -240,6 +240,11 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
 
 // Abrir modal de confirmación de pago
 function abrirModalPago(agendamientoId) {
+    // Asegurar que no haya 2 modales apilados
+    try {
+        if (typeof cerrarModalDetalleAgendamiento === 'function') cerrarModalDetalleAgendamiento();
+    } catch (_) {}
+
     const agendamiento = appData.agendamientos.find(a => a.id === agendamientoId);
     if (agendamiento) {
         adminState.agendamientoSeleccionado = agendamiento;
@@ -407,6 +412,11 @@ async function actualizarPrecioMateria(servicioId, nuevoPrecio) {
 
 // Abrir/cerrar modal
 function abrirModal(modalId) {
+    // Cerrar cualquier otro modal activo para evitar solapamiento
+    document.querySelectorAll('.modal.active').forEach(m => {
+        if (m?.id && m.id !== modalId) m.classList.remove('active');
+    });
+
     document.getElementById(modalId).classList.add('active');
 }
 

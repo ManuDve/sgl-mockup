@@ -383,7 +383,20 @@ const Components = {
     `,
 
     // Página de Agendamientos en Panel Administrativo
-    adminAgendamientos: () => `
+    adminAgendamientos: () => {
+        const pendientesOrdenados = [...(appData.agendamientosPendientes || [])].sort((a, b) => {
+            const da = new Date(`${a.fecha}T${a.hora || '00:00'}`);
+            const db = new Date(`${b.fecha}T${b.hora || '00:00'}`);
+            return db - da;
+        });
+
+        const historialOrdenado = [...(appData.agendamientosHistorial || [])].sort((a, b) => {
+            const da = new Date(`${a.fecha}T${a.hora || '00:00'}`);
+            const db = new Date(`${b.fecha}T${b.hora || '00:00'}`);
+            return db - da;
+        });
+
+        return `
         <div class="max-w-6xl mx-auto px-4 py-12">
             <div class="flex items-end justify-between gap-6 flex-wrap mb-6">
                 <div>
@@ -405,7 +418,7 @@ const Components = {
             <div class="bg-white rounded-lg shadow-md p-6 border">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Pendientes de pago</h3>
                 <div class="space-y-4">
-                    ${appData.agendamientos.pendientes.map(a => `
+                    ${pendientesOrdenados.map(a => `
                         <div class="bg-gray-50 p-4 rounded-lg border">
                             <div class="flex justify-between items-center gap-4 flex-wrap">
                                 <div>
@@ -427,7 +440,7 @@ const Components = {
 
                 <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-4">Historial</h3>
                 <div class="space-y-4">
-                    ${appData.agendamientos.historial.map(a => `
+                    ${historialOrdenado.map(a => `
                         <div class="bg-white p-4 rounded-lg border">
                             <div class="flex justify-between items-center gap-4 flex-wrap">
                                 <div>
@@ -580,7 +593,8 @@ const Components = {
         const ordenados = [...todos].sort((a, b) => {
             const da = new Date(`${a.fecha}T${a.hora || '00:00'}`);
             const db = new Date(`${b.fecha}T${b.hora || '00:00'}`);
-            return da - db;
+            // Más reciente primero
+            return db - da;
         });
 
         return `
