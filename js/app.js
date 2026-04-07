@@ -224,13 +224,22 @@ function verificarGestion(event) {
     event.preventDefault();
 
     if (!appData.gestion) appData.gestion = {};
+
+    // Captura una vez antes de re-renderizar (evita perder valores al refrescar el DOM)
+    const codigoIngresado = (document.getElementById('gestionOtp')?.value || '').trim();
+    const contactoIngresado = (document.getElementById('gestionContacto')?.value || '').trim();
+
+    // Persistir lo que el usuario ingresó en el estado
+    appData.gestion.otpIngresado = codigoIngresado;
+    appData.gestion.contacto = contactoIngresado;
+
     appData.gestion.estado = 'loading';
     renderizar();
 
-    const codigo = (document.getElementById('gestionOtp')?.value || '').trim();
-    const contacto = (document.getElementById('gestionContacto')?.value || '').trim();
-
     setTimeout(() => {
+        const codigo = (appData.gestion?.otpIngresado || '').trim();
+        const contacto = (appData.gestion?.contacto || '').trim();
+
         if (!codigo || !contacto) {
             appData.gestion.estado = 'idle';
             renderizar();
@@ -238,15 +247,20 @@ function verificarGestion(event) {
             return;
         }
 
-        if (appData.gestion?.otp && codigo === appData.gestion.otp) {
+        const otpEsperado = (appData.gestion?.otp || '').trim();
+
+        // Si se ingresa desde el enlace (WhatsApp/correo) viene otp esperado.
+        // Si se inicia desde el sitio (botón Inicio) puede no existir otp esperado; aceptamos cualquier código para avanzar.
+        const ok = otpEsperado ? (codigo === otpEsperado) : true;
+
+        appData.gestion.estado = 'idle';
+
+        if (ok) {
             appData.gestion.verificado = true;
-            appData.gestion.estado = 'idle';
             renderizar();
             mostrarNotificacion('Verificación exitosa', 'success');
-            // Modal solo para confirmar
             abrirModalConfirmarGestion();
         } else {
-            appData.gestion.estado = 'idle';
             renderizar();
             mostrarNotificacion('Código inválido', 'error');
         }
@@ -434,12 +448,19 @@ function renderizar() {
                             <h2 class="text-3xl font-semibold text-gray-900">Gestión de cita</h2>
                             <p class="text-gray-600 mt-2">Ingresa el código de verificación y tu contacto para continuar.</p>
 
+                            ${appData.gestion?.id ? `
                             <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
                                 <div class="flex justify-between gap-4 flex-wrap">
                                     <div><span class="text-gray-500">ID de cita:</span> <span class="font-semibold">${appData.gestion?.id || '-'}</span></div>
                                     <div><span class="text-gray-500">Acción:</span> <span class="font-semibold">${appData.gestion?.accion || '-'}</span></div>
                                 </div>
                             </div>
+                            ` : `
+                            <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+                                <p class="font-medium text-gray-900">Demo web</p>
+                                <p class="mt-1 text-gray-600">En producción, esta página suele abrirse desde un enlace enviado por WhatsApp/correo con el <span class="font-semibold">ID</span> de la cita y el <span class="font-semibold">código (OTP)</span> prellenados.</p>
+                            </div>
+                            `}
 
                             <div class="mt-6 flex gap-2">
                                 <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion !== 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'} transition" onclick="appData.gestion.accion='reagendar'; renderizar();">Reagendar</button>
@@ -449,11 +470,11 @@ function renderizar() {
                             <form class="mt-6 space-y-4" onsubmit="verificarGestion(event)">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Código de verificación</label>
-                                    <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Ingresa el código" value="${appData.gestion?.otp || ''}" />
+                                    <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Ingresa el código" value="${appData.gestion?.otpIngresado || appData.gestion?.otp || ''}" oninput="appData.gestion.otpIngresado=this.value;" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Email o teléfono</label>
-                                    <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Tu email o teléfono" />
+                                    <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Tu email o teléfono" value="${appData.gestion?.contacto || ''}" oninput="appData.gestion.contacto=this.value;" />
                                 </div>
                                 <div class="flex gap-3 pt-1 flex-wrap">
                                     <button type="submit" class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition flex items-center gap-2" ${appData.gestion?.estado === 'loading' ? 'disabled' : ''}>
