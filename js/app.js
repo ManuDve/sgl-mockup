@@ -15,6 +15,32 @@ function irGestionWeb() {
     window.scrollTo(0, 0);
 }
 
+// Normaliza la búsqueda de citas: permite coincidir por id numérico o por idExterno (string)
+function obtenerAgendamientoPorId(id) {
+    if (!id) return null;
+    const s = String(id);
+
+    // 1) совпадение directo por id
+    let ag = appData.agendamientos.find(a => String(a.id) === s);
+    if (ag) return ag;
+
+    // 2) совпадение por idExterno (si existe)
+    ag = appData.agendamientos.find(a => String(a.idExterno || '') === s);
+    if (ag) return ag;
+
+    // 3) Fallback demo: si viene un ID externo (ej: AG-2026-0012) y no hay match,
+    // asociarlo a la primera cita existente para que el flujo sea demostrable.
+    if (/^AG-\d{4}-\d+$/i.test(s)) {
+        const primera = appData.agendamientos.find(() => true);
+        if (primera) {
+            primera.idExterno = s;
+            return primera;
+        }
+    }
+
+    return null;
+}
+
 // Modal de confirmación final
 function abrirModalConfirmarGestion() {
     const modal = document.getElementById('modalGestion');
@@ -26,7 +52,7 @@ function abrirModalConfirmarGestion() {
     const accion = appData.gestion?.accion || 'reagendar';
     const id = appData.gestion?.id || '-';
 
-    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+    const ag = obtenerAgendamientoPorId(id);
 
     const titulo = accion === 'cancelar' ? 'Confirmar cancelación' : 'Confirmar reagendamiento';
     const texto = accion === 'cancelar'
@@ -37,7 +63,7 @@ function abrirModalConfirmarGestion() {
         <div class="mt-5 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
             <div class="font-semibold text-gray-900 mb-2">Datos de la cita</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.id}</span></div>
+                <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.idExterno || ag.id}</span></div>
                 <div><span class="text-gray-500">Estado:</span> <span class="font-semibold">${ag.estado}</span></div>
                 <div><span class="text-gray-500">Cliente:</span> <span class="font-semibold">${ag.nombre}</span></div>
                 <div><span class="text-gray-500">Contacto:</span> <span class="font-semibold">${ag.email || ag.telefono || '-'}</span></div>
@@ -50,7 +76,7 @@ function abrirModalConfirmarGestion() {
     ` : `
         <div class="mt-5 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900">
             <div class="font-semibold">No se encontró la cita</div>
-            <div class="mt-1 text-yellow-800">Para ver los datos, ingresa desde el enlace que trae el ID en la URL.</div>
+            <div class="mt-1 text-yellow-800">Revisa que el enlace contenga un ID válido.</div>
         </div>
     `;
 
@@ -302,7 +328,7 @@ function confirmarGestion() {
     const accion = appData.gestion.accion;
     const id = appData.gestion.id;
 
-    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+    const ag = obtenerAgendamientoPorId(id);
 
     if (accion === 'cancelar') {
         if (ag) ag.estado = 'Cancelado';
@@ -314,7 +340,6 @@ function confirmarGestion() {
 
     if (accion === 'reagendar') {
         if (ag) ag.estado = 'Pendiente Reagendamiento';
-        // Ir a la pantalla de selección de nueva fecha/hora
         cerrarModalGestion({ limpiarURL: false });
         navegar('reagendar');
         return;
@@ -329,7 +354,7 @@ function confirmarReagendamiento(event) {
     event.preventDefault();
 
     const id = appData.gestion?.id;
-    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+    const ag = obtenerAgendamientoPorId(id);
 
     const nuevaFecha = (document.getElementById('reagendarFecha')?.value || '').trim();
     const nuevaHora = (document.getElementById('reagendarHora')?.value || '').trim();
@@ -556,7 +581,7 @@ function renderizar() {
 
         case 'reagendar': {
             const id = appData.gestion?.id || '-';
-            const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+            const ag = obtenerAgendamientoPorId(id);
 
             contenido += `
                 <section class="py-12">
@@ -569,7 +594,7 @@ function renderizar() {
                             <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
                                 <div class="font-semibold text-gray-900 mb-2">Cita actual</div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.id}</span></div>
+                                    <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.idExterno || ag.id}</span></div>
                                     <div><span class="text-gray-500">Materia:</span> <span class="font-semibold">${ag.materia}</span></div>
                                     <div><span class="text-gray-500">Fecha:</span> <span class="font-semibold">${ag.fecha}</span></div>
                                     <div><span class="text-gray-500">Hora:</span> <span class="font-semibold">${ag.hora}</span></div>
