@@ -93,6 +93,12 @@ function irAdminLogin() {
     navegar('adminLogin');
 }
 
+// Acceso web para reagendar/cancelar (flujo gestion)
+function irGestionWeb() {
+    appData.gestion = { accion: 'reagendar', id: '', otp: '', verificado: false };
+    navegar('gestionar');
+}
+
 function loginAdmin(event) {
     event.preventDefault();
     const email = document.getElementById('adminEmail').value;
@@ -229,30 +235,30 @@ function renderizar() {
     switch(appData.currentPage) {
         case 'adminLogin':
             contenido += `
-                <section class="py-20 bg-gray-100 min-h-screen flex items-center">
+                <section class="py-20 bg-gray-50 min-h-screen flex items-center">
                     <div class="max-w-md mx-auto w-full px-4">
-                        <div class="bg-white rounded-lg shadow-lg p-8">
-                            <h2 class="text-3xl font-bold text-blue-900 mb-6 text-center">Panel Administrativo</h2>
+                        <div class="bg-white rounded-lg shadow-lg p-8 border">
+                            <h2 class="text-3xl font-semibold text-gray-900 mb-6 text-center">Panel Administrativo</h2>
                             <form onsubmit="loginAdmin(event)" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                    <input type="email" id="adminEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="admin@estudiojuridico.cl">
+                                    <input type="email" id="adminEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="admin@estudiojuridico.cl">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
-                                    <input type="password" id="adminPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                                    <input type="password" id="adminPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="••••••••">
                                 </div>
-                                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+                                <button type="submit" class="w-full bg-gray-900 text-white py-2 rounded-full font-medium hover:bg-gray-800 transition">
                                     Ingresar
                                 </button>
                             </form>
-                            <div class="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-gray-700">
-                                <p class="font-bold mb-2">Credenciales de Prueba:</p>
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 border">
+                                <p class="font-semibold mb-2">Credenciales de prueba</p>
                                 <p>Email: admin@estudiojuridico.cl</p>
                                 <p>Contraseña: admin123</p>
                             </div>
-                            <button onclick="navegar('home')" class="w-full mt-4 bg-gray-300 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-400 transition">
-                                Volver al Inicio
+                            <button onclick="navegar('home')" class="w-full mt-4 bg-white text-gray-800 py-2 rounded-full font-medium border hover:bg-gray-50 transition">
+                                Volver al inicio
                             </button>
                         </div>
                     </div>
@@ -290,30 +296,49 @@ function renderizar() {
 
         case 'home':
             contenido += Components.hero();
-            contenido += `<section class="py-12 bg-white"><div class="max-w-6xl mx-auto px-4">
-                <h2 class="text-3xl font-bold text-blue-900 mb-8 text-center">¿Por qué elegir nuestro estudio?</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            contenido += `<section class="py-12 bg-white border-b"><div class="max-w-6xl mx-auto px-4">
+                <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-8 text-center">¿Por qué elegir nuestro estudio?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
                     <div class="text-center">
                         <i class="fas fa-check-circle text-4xl mb-4 text-gray-600"></i>
-                        <h3 class="font-bold text-lg mb-2">Rápido y Fácil</h3>
-                        <p class="text-gray-600">Agenda tu consulta sin registro en segundos</p>
+                        <h3 class="font-semibold text-lg mb-2">Rápido y fácil</h3>
+                        <p class="text-gray-600">Agenda tu consulta sin registro en segundos.</p>
                     </div>
                     <div class="text-center">
                         <i class="fas fa-shield-alt text-4xl mb-4 text-gray-600"></i>
-                        <h3 class="font-bold text-lg mb-2">Seguro y Confidencial</h3>
-                        <p class="text-gray-600">Tu información está protegida y es 100% confidencial</p>
+                        <h3 class="font-semibold text-lg mb-2">Seguro y confidencial</h3>
+                        <p class="text-gray-600">Tu información es tratada con confidencialidad.</p>
                     </div>
                     <div class="text-center">
                         <i class="fas fa-clock text-4xl mb-4 text-gray-600"></i>
-                        <h3 class="font-bold text-lg mb-2">Disponible 24/7</h3>
-                        <p class="text-gray-600">Elige el horario que mejor se adapte a ti</p>
+                        <h3 class="font-semibold text-lg mb-2">Disponible 24/7</h3>
+                        <p class="text-gray-600">Elige el horario que mejor se adapte a ti.</p>
                     </div>
                 </div>
-                <div class="text-center mt-8">
-                    <button onclick="irAdminLogin()" class="text-blue-600 hover:text-blue-700 font-bold text-sm">
-                        <i class="fas fa-lock"></i>
-                        Acceso Administrador
-                    </button>
+
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900">¿Necesitas cambiar tu cita?</h3>
+                        <p class="text-sm text-gray-600 mt-1">Reagenda o cancela tu consulta usando el enlace que recibiste por WhatsApp o correo.</p>
+                        <div class="mt-4 flex gap-3 flex-wrap">
+                            <button onclick="irGestionWeb()" class="bg-white border text-gray-900 px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
+                                Reagendar o cancelar
+                            </button>
+                            <button onclick="irAdminLogin()" class="text-gray-700 hover:text-gray-900 font-medium text-sm">
+                                <i class="fas fa-lock"></i>
+                                Acceso administrador
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Canal de atención</h3>
+                        <p class="text-sm text-gray-600 mt-1">Puedes escribirnos por WhatsApp para orientación y seguimiento.</p>
+                        <div class="mt-4">
+                            <button onclick="navegar('whatsapp')" class="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
+                                Abrir WhatsApp
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div></section>`;
             break;
@@ -339,11 +364,11 @@ function renderizar() {
             contenido += `
                 <section class="py-12">
                     <div class="max-w-2xl mx-auto px-4">
-                        <div class="bg-white rounded-lg shadow-lg p-8">
-                            <h2 class="text-3xl font-bold text-blue-900">Verificación de identidad</h2>
+                        <div class="bg-white rounded-lg shadow-lg p-8 border">
+                            <h2 class="text-3xl font-semibold text-gray-900">Gestión de cita</h2>
                             <p class="text-gray-600 mt-2">
                                 Para <span class="font-semibold">${appData.gestion?.accion === 'cancelar' ? 'cancelar' : 'reagendar'}</span> una consulta,
-                                valida tu identidad con el código entregado por WhatsApp.
+                                valida tu identidad con el código de verificación.
                             </p>
 
                             <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
@@ -355,30 +380,33 @@ function renderizar() {
 
                             ${appData.gestion?.verificado ? `
                                 <div class="mt-6 p-4 border rounded-lg bg-white">
-                                    <h3 class="font-bold text-gray-900">Identidad verificada</h3>
+                                    <h3 class="font-semibold text-gray-900">Identidad verificada</h3>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        Puedes confirmar la solicitud. Esta operación es un mockup.
+                                        Confirma la solicitud para continuar.
                                     </p>
-                                    <div class="flex gap-3 mt-4">
-                                        <button class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold" onclick="confirmarGestion()">Confirmar</button>
-                                        <button class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold" onclick="navegar('home')">Volver</button>
+                                    <div class="flex gap-3 mt-4 flex-wrap">
+                                        <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium" onclick="confirmarGestion()">Confirmar</button>
+                                        <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium" onclick="navegar('home')">Volver</button>
                                     </div>
                                 </div>
                             ` : `
+                                <div class="mt-6 flex gap-2">
+                                    <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion !== 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'}" onclick="appData.gestion.accion='reagendar'; renderizar();">Reagendar</button>
+                                    <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion === 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'}" onclick="appData.gestion.accion='cancelar'; renderizar();">Cancelar</button>
+                                </div>
                                 <form class="mt-6 space-y-4" onsubmit="verificarGestion(event)">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Código de verificación</label>
-                                        <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Ingresa el código de 6 dígitos" value="${appData.gestion?.otp || ''}" />
-                                        <p class="text-xs text-gray-500 mt-2">El código llega por WhatsApp y es válido por un tiempo limitado.</p>
+                                        <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Ingresa el código" value="${appData.gestion?.otp || ''}" />
+                                        <p class="text-xs text-gray-500 mt-2">El código se envía a tu WhatsApp.</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Email o teléfono</label>
-                                        <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Tu email o teléfono usado en el agendamiento" />
-                                        <p class="text-xs text-gray-500 mt-2">Este campo simula una segunda verificación.</p>
+                                        <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Tu email o teléfono usado en el agendamiento" />
                                     </div>
-                                    <div class="flex gap-3 pt-2">
-                                        <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold">Verificar</button>
-                                        <button type="button" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold" onclick="navegar('home')">Cancelar</button>
+                                    <div class="flex gap-3 pt-2 flex-wrap">
+                                        <button type="submit" class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium">Verificar</button>
+                                        <button type="button" class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium" onclick="navegar('home')">Cancelar</button>
                                     </div>
                                 </form>
                             `}

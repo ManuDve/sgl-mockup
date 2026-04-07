@@ -57,6 +57,42 @@ function waBot(text) {
   waAppendMessage({ direction: 'in', text });
 }
 
+// Mensaje del bot con enlace clickeable
+function waBotLink(label, href) {
+  const el = waChatEl();
+  if (!el) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'flex justify-start';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'wa-bubble px-3 py-2 text-sm shadow-sm wa-in';
+
+  const content = document.createElement('div');
+  content.className = 'whitespace-pre-wrap leading-snug';
+
+  const a = document.createElement('a');
+  a.href = href;
+  a.target = '_self';
+  a.rel = 'noopener';
+  a.textContent = label;
+  a.style.textDecoration = 'underline';
+  a.style.textUnderlineOffset = '3px';
+
+  content.appendChild(a);
+
+  const metaEl = document.createElement('div');
+  metaEl.className = 'wa-meta mt-1 flex justify-end gap-2';
+  metaEl.textContent = waNow();
+
+  bubble.appendChild(content);
+  bubble.appendChild(metaEl);
+  wrap.appendChild(bubble);
+  el.appendChild(wrap);
+
+  waScrollToBottom();
+}
+
 function waUser(text) {
   waAppendMessage({ direction: 'out', text });
 }
@@ -99,6 +135,14 @@ function waFlowConsulta() {
   waBot('Si necesitas modificar la cita, responde 2 (Reagendar) o 3 (Cancelar).');
 }
 
+// Helpers para URLs (compatibles con GitHub Pages)
+function waGestionURL(params = {}) {
+  // Mantiene el path actual (incluye /<repo>/ en GitHub Pages) y elimina la query
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const q = new URLSearchParams(params);
+  return `${base}?${q.toString()}`;
+}
+
 function waIssueOtp(purpose) {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   waState.lastOtp = { otp, purpose, createdAt: Date.now() };
@@ -110,12 +154,12 @@ function waFlowReagendar() {
 
   waUser('2');
   const otp = waIssueOtp('reagendar');
-  const url = `https://estudiojuridico.cl/gestionar?accion=reagendar&id=${encodeURIComponent(waState.cita.id)}&otp=${otp}`;
+  const url = waGestionURL({ accion: 'reagendar', id: waState.cita.id, otp });
 
   waBot('Para reagendar debemos verificar tu identidad.');
   waBot(`Código de verificación (válido por 10 minutos): ${otp}`);
-  waBot('Abre el siguiente enlace y valida el código para continuar:');
-  waBot(url);
+  waBot('Abre el siguiente enlace para continuar:');
+  waBotLink(url, url);
 }
 
 function waFlowCancelar() {
@@ -123,12 +167,12 @@ function waFlowCancelar() {
 
   waUser('3');
   const otp = waIssueOtp('cancelar');
-  const url = `https://estudiojuridico.cl/gestionar?accion=cancelar&id=${encodeURIComponent(waState.cita.id)}&otp=${otp}`;
+  const url = waGestionURL({ accion: 'cancelar', id: waState.cita.id, otp });
 
   waBot('Para cancelar debemos verificar tu identidad.');
   waBot(`Código de verificación (válido por 10 minutos): ${otp}`);
-  waBot('Abre el siguiente enlace y valida el código para continuar:');
-  waBot(url);
+  waBot('Abre el siguiente enlace para continuar:');
+  waBotLink(url, url);
 }
 
 // Input decorativo: este handler solo inserta un mensaje genérico
