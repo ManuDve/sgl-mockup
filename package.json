@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "npm run clean && cpy index.html js/** documents/** dist --parents",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "preview": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +21,8 @@
     "sistema-gestion"
   ],
   "author": "Manuel Dve",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "cpy-cli": "^5.0.0"
+  }
 }

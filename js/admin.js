@@ -14,11 +14,188 @@ const adminCredenciales = {
     password: 'admin123'
 };
 
+// Utilidades de UI: carga simulada (delay) y estado de procesamiento
+const UI = {
+    delay(ms = 650) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    setBtnLoading(btn, loading, labelLoading = 'Procesando...') {
+        if (!btn) return;
+        if (loading) {
+            btn.dataset.prevDisabled = String(btn.disabled);
+            btn.dataset.prevHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            btn.innerHTML = `
+                <span class="inline-flex items-center gap-2">
+                    <span class="inline-block w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin"></span>
+                    <span>${labelLoading}</span>
+                </span>
+            `;
+        } else {
+            const prev = btn.dataset.prevHtml;
+            btn.disabled = (btn.dataset.prevDisabled === 'true');
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            if (prev) btn.innerHTML = prev;
+        }
+    },
+    showModalLoading(modalId, { titulo = 'Cargando', texto = 'Obteniendo información...' } = {}) {
+        const modal = document.getElementById(modalId);
+        const body = document.getElementById(modalId + 'Body');
+        if (!modal || !body) return;
+        modal.classList.add('active');
+        body.innerHTML = `
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">${titulo}</h2>
+                    <p class="text-sm text-gray-600 mt-1">${texto}</p>
+                </div>
+                <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModal('${modalId}')" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="mt-6 flex items-center gap-3 text-sm text-gray-700">
+                <span class="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></span>
+                <span>Procesando...</span>
+            </div>
+        `;
+    }
+};
+
+// Modal decente para detalle de agendamiento (dashboard/calendario/historial)
+async function adminAbrirDetalleAgendamiento(agendamientoId) {
+    const modalId = 'modalDetalleAgendamiento';
+    const modal = document.getElementById(modalId);
+    const body = document.getElementById('modalDetalleAgendamientoBody');
+
+    if (!modal || !body) {
+        mostrarNotificacion('No se pudo abrir el detalle (modal no disponible)', 'error');
+        return;
+    }
+
+    // Loading
+    modal.classList.add('active');
+    body.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Detalle de agendamiento</h2>
+                <p class="text-sm text-gray-600 mt-1">Cargando información...</p>
+            </div>
+            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModalDetalleAgendamiento()" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="mt-6 flex items-center gap-3 text-sm text-gray-700">
+            <span class="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></span>
+            <span>Obteniendo datos del agendamiento...</span>
+        </div>
+    `;
+
+    await UI.delay(650);
+
+    const ag = appData.agendamientos.find(a => a.id === agendamientoId);
+
+    if (!ag) {
+        body.innerHTML = `
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Detalle de agendamiento</h2>
+                    <p class="text-sm text-gray-600 mt-1">No se encontró el registro.</p>
+                </div>
+                <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModalDetalleAgendamiento()" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+                Verifica el ID y vuelve a intentar.
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition" onclick="cerrarModalDetalleAgendamiento()">Cerrar</button>
+            </div>
+        `;
+        return;
+    }
+
+    const estadoStyle = {
+        'Pendiente Pago': 'bg-white border text-gray-700',
+        'Confirmado': 'bg-gray-900 text-white border border-gray-900',
+        'Cancelado': 'bg-gray-100 border text-gray-700',
+        'Pendiente Reagendamiento': 'bg-gray-100 border text-gray-700'
+    }[ag.estado] || 'bg-gray-50 border text-gray-700';
+
+    body.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Detalle de agendamiento</h2>
+                <p class="text-sm text-gray-600 mt-1">Información registrada en el sistema.</p>
+            </div>
+            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModalDetalleAgendamiento()" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-4">
+            <div class="bg-white border rounded-lg p-4">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <div class="text-sm text-gray-500">ID</div>
+                    <div class="text-sm font-semibold text-gray-900">${ag.idExterno || ag.id}</div>
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div class="text-sm text-gray-500">Estado</div>
+                    <span class="text-xs px-3 py-1 rounded-full ${estadoStyle}">${ag.estado}</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border rounded-lg p-4">
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</div>
+                <div class="mt-1 font-semibold text-gray-900">${ag.nombre}</div>
+                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                    <div><span class="text-gray-500">Email:</span> <span class="font-medium">${ag.email || '-'}</span></div>
+                    <div><span class="text-gray-500">Teléfono:</span> <span class="font-medium">${ag.telefono || '-'}</span></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border rounded-lg p-4">
+                <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Consulta</div>
+                <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                    <div><span class="text-gray-500">Materia:</span> <span class="font-medium">${ag.materia}</span></div>
+                    <div><span class="text-gray-500">Monto:</span> <span class="font-semibold text-gray-900">$${(ag.monto || 0).toLocaleString()}</span></div>
+                    <div><span class="text-gray-500">Fecha:</span> <span class="font-medium">${ag.fecha}</span></div>
+                    <div><span class="text-gray-500">Hora:</span> <span class="font-medium">${ag.hora || '-'}</span></div>
+                    <div><span class="text-gray-500">Transacción:</span> <span class="font-medium">${ag.transaccion || '-'}</span></div>
+                    <div><span class="text-gray-500">Confirmación:</span> <span class="font-medium">${ag.fechaConfirmacion ? formatearFecha(ag.fechaConfirmacion) : '-'}</span></div>
+                </div>
+
+                ${ag.descripcion ? `
+                    <div class="mt-4">
+                        <div class="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">Descripción</div>
+                        <div class="bg-white border rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">${ag.descripcion}</div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-2 justify-end flex-wrap">
+            ${ag.estado === 'Pendiente Pago' ? `
+                <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition" onclick="abrirModalPago(${ag.id})">Confirmar pago</button>
+            ` : ''}
+            ${ag.estado === 'Confirmado' ? `
+                <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="abrirModalCotizacion(${ag.id})">Cotizar</button>
+            ` : ''}
+            <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="cerrarModalDetalleAgendamiento()">Cerrar</button>
+        </div>
+    `;
+}
+
+// Alias para que los botones "Ver" (historial/calendario) abran el modal decente
+function mostrarDetallesAgendamiento(agendamientoId) {
+    return adminAbrirDetalleAgendamiento(agendamientoId);
+}
+
 // Función de login
-function loginAdmin(event) {
+async function loginAdmin(event) {
     event.preventDefault();
+    const btn = event?.submitter || event?.target?.querySelector('button[type="submit"]');
+
+    UI.setBtnLoading(btn, true, 'Validando...');
+    await UI.delay(650);
+
     const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
+
+    UI.setBtnLoading(btn, false);
 
     if (email === adminCredenciales.email && password === adminCredenciales.password) {
         adminState.logueado = true;
@@ -31,7 +208,11 @@ function loginAdmin(event) {
 }
 
 // Función de logout
-function logoutAdmin() {
+async function logoutAdmin() {
+    // Feedback simple
+    mostrarNotificacion('Cerrando sesión...', 'info');
+    await UI.delay(450);
+
     adminState.logueado = false;
     adminState.adminActual = null;
     navegar('home');
@@ -70,11 +251,17 @@ function abrirModalPago(agendamientoId) {
 }
 
 // Procesar confirmación de pago
-function procesarConfirmacionPago(event) {
+async function procesarConfirmacionPago(event) {
     event.preventDefault();
+    const btn = event?.submitter || event?.target?.querySelector('button[type="submit"]');
+
+    UI.setBtnLoading(btn, true, 'Confirmando...');
+    await UI.delay(650);
 
     const transaccion = document.getElementById('inputTransaccion').value;
     const monto = parseInt(document.getElementById('inputMontoConfirmado').value);
+
+    UI.setBtnLoading(btn, false);
 
     if (adminState.agendamientoSeleccionado) {
         adminState.agendamientoSeleccionado.estado = 'Confirmado';
@@ -149,8 +336,12 @@ function abrirModalCotizacionLibre() {
 }
 
 // Generar cotización (simular descarga PDF)
-function generarCotizacion(event) {
+async function generarCotizacion(event) {
     event.preventDefault();
+    const btn = event?.submitter || event?.target?.querySelector('button[type="submit"]');
+
+    UI.setBtnLoading(btn, true, 'Generando...');
+    await UI.delay(850);
 
     const cotizacion = {
         id: 'COT-' + Date.now(),
@@ -163,22 +354,26 @@ function generarCotizacion(event) {
         fecha: new Date()
     };
 
-    // Guardar cotización
     if (!appData.cotizaciones) appData.cotizaciones = [];
     appData.cotizaciones.push(cotizacion);
 
-    // Marcar agendamiento como con cotización (si aplica)
     if (adminState.agendamientoSeleccionado) {
         adminState.agendamientoSeleccionado.cotizacion = cotizacion.id;
     }
 
+    UI.setBtnLoading(btn, false);
+
     cerrarModal('modalCotizacion');
-    mostrarNotificacion('Cotización generada y descargada', 'success');
+    mostrarNotificacion('Cotización enviada al email', 'success');
     navegar('adminAgendamientos');
 }
 
 // Cambiar estado de agendamiento
-function cambiarEstadoAgendamiento(agendamientoId, nuevoEstado) {
+async function cambiarEstadoAgendamiento(agendamientoId, nuevoEstado) {
+    // Feedback simple (no hay botón directo aquí)
+    mostrarNotificacion('Actualizando estado...', 'info');
+    await UI.delay(450);
+
     const agendamiento = appData.agendamientos.find(a => a.id === agendamientoId);
     if (agendamiento) {
         agendamiento.estado = nuevoEstado;
@@ -188,13 +383,15 @@ function cambiarEstadoAgendamiento(agendamientoId, nuevoEstado) {
 }
 
 // Actualizar precio de materia
-function actualizarPrecioMateria(servicioId, nuevoPrecio) {
+async function actualizarPrecioMateria(servicioId, nuevoPrecio) {
+    mostrarNotificacion('Guardando cambios...', 'info');
+    await UI.delay(650);
+
     const servicio = appData.servicios.find(s => s.id === parseInt(servicioId));
     if (servicio) {
         const precioAnterior = servicio.precio;
         servicio.precio = parseInt(nuevoPrecio);
 
-        // Guardar en historial
         if (!appData.historialPrecios) appData.historialPrecios = [];
         appData.historialPrecios.push({
             servicio: servicio.nombre,

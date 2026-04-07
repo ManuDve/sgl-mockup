@@ -199,154 +199,21 @@ function mostrarConfirmacion() {
     }
 }
 
+// NOTA: login/logout y el modal de detalle se implementan en js/admin.js.
+// app.js no debe redefinir esas funciones.
+
+// (Se elimina el fallback de detalle; el admin requiere admin.js cargado.)
+
+if (typeof window.cerrarModalDetalleAgendamiento !== 'function') {
+    window.cerrarModalDetalleAgendamiento = function () {
+        const modal = document.getElementById('modalDetalleAgendamiento');
+        if (modal) modal.classList.remove('active');
+    };
+}
+
 // Funciones de Admin
 function irAdminLogin() {
     navegar('adminLogin');
-}
-
-function loginAdmin(event) {
-    event.preventDefault();
-    const email = document.getElementById('adminEmail').value;
-    const password = document.getElementById('adminPassword').value;
-
-    if (email === 'admin@estudiojuridico.cl' && password === 'admin123') {
-        adminState.logueado = true;
-        adminState.adminActual = { email, nombre: 'Administrador' };
-        navegar('adminDashboard');
-        mostrarNotificacion('Bienvenido al panel administrativo', 'success');
-    } else {
-        mostrarNotificacion('Email o contraseña incorrectos', 'error');
-    }
-}
-
-function cerrarSesion() {
-    adminState.logueado = false;
-    adminState.adminActual = null;
-    navegar('home');
-    mostrarNotificacion('Sesión cerrada', 'info');
-}
-
-function mostrarDetallesAgendamiento(agendamientoId) {
-    const agendamiento = appData.agendamientos.find(a => a.id === agendamientoId);
-    if (agendamiento) {
-        alert(`Detalles del Agendamiento:\n\nCliente: ${agendamiento.nombre}\nEmail: ${agendamiento.email}\nTeléfono: ${agendamiento.telefono}\nMateria: ${agendamiento.materia}\nFecha: ${agendamiento.fecha}\nHora: ${agendamiento.hora}\nMonto: $${agendamiento.monto.toLocaleString()}\nEstado: ${agendamiento.estado}`);
-    }
-}
-
-function mostrarFormularioServicio() {
-    document.getElementById('formularioServicio').classList.remove('hidden');
-}
-
-function ocultarFormularioServicio() {
-    document.getElementById('formularioServicio').classList.add('hidden');
-}
-
-function agregarServicio(event) {
-    event.preventDefault();
-    const nombre = document.getElementById('nuevoServicioNombre').value;
-    const precio = parseInt(document.getElementById('nuevoServicioPrecio').value);
-    const descripcion = document.getElementById('nuevoServicioDescripcion').value;
-
-    const nuevoServicio = {
-        id: appData.servicios.length + 1,
-        nombre,
-        precio,
-        descripcion,
-        solicitudes: 0
-    };
-
-    appData.servicios.push(nuevoServicio);
-    ocultarFormularioServicio();
-    mostrarNotificacion('Servicio agregado exitosamente', 'success');
-    navegar('adminServicios');
-}
-
-function mostrarEditarServicio(servicioId) {
-    const servicio = appData.servicios.find(s => s.id === servicioId);
-    if (servicio) {
-        const nuevoPrecio = prompt(`Nuevo precio para ${servicio.nombre}:`, servicio.precio);
-        if (nuevoPrecio && !isNaN(nuevoPrecio)) {
-            actualizarPrecioMateria(servicioId, nuevoPrecio);
-        }
-    }
-}
-
-// Flujo web (mock) para reagendar/cancelar con verificación
-function verificarGestion(event) {
-    event.preventDefault();
-
-    if (!appData.gestion) appData.gestion = {};
-
-    // Captura una vez antes de re-renderizar (evita perder valores al refrescar el DOM)
-    const codigoIngresado = (document.getElementById('gestionOtp')?.value || '').trim();
-    const contactoIngresado = (document.getElementById('gestionContacto')?.value || '').trim();
-
-    // Persistir lo que el usuario ingresó en el estado
-    appData.gestion.otpIngresado = codigoIngresado;
-    appData.gestion.contacto = contactoIngresado;
-
-    appData.gestion.estado = 'loading';
-    renderizar();
-
-    setTimeout(() => {
-        const codigo = (appData.gestion?.otpIngresado || '').trim();
-        const contacto = (appData.gestion?.contacto || '').trim();
-
-        if (!codigo || !contacto) {
-            appData.gestion.estado = 'idle';
-            renderizar();
-            mostrarNotificacion('Completa el código y tu email o teléfono', 'error');
-            return;
-        }
-
-        const otpEsperado = (appData.gestion?.otp || '').trim();
-
-        // Si se ingresa desde el enlace (WhatsApp/correo) viene otp esperado.
-        // Si se inicia desde el sitio (botón Inicio) puede no existir otp esperado; aceptamos cualquier código para avanzar.
-        const ok = otpEsperado ? (codigo === otpEsperado) : true;
-
-        appData.gestion.estado = 'idle';
-
-        if (ok) {
-            appData.gestion.verificado = true;
-            renderizar();
-            mostrarNotificacion('Verificación exitosa', 'success');
-            abrirModalConfirmarGestion();
-        } else {
-            renderizar();
-            mostrarNotificacion('Código inválido', 'error');
-        }
-    }, 650);
-}
-
-function confirmarGestion() {
-    if (!appData.gestion?.verificado) {
-        mostrarNotificacion('Debes verificar tu identidad antes de continuar', 'error');
-        return;
-    }
-
-    const accion = appData.gestion.accion;
-    const id = appData.gestion.id;
-
-    const ag = obtenerAgendamientoPorId(id);
-
-    if (accion === 'cancelar') {
-        if (ag) ag.estado = 'Cancelado';
-        mostrarNotificacion('Cancelación registrada', 'success');
-        cerrarModalGestion();
-        navegar('home');
-        return;
-    }
-
-    if (accion === 'reagendar') {
-        if (ag) ag.estado = 'Pendiente Reagendamiento';
-        cerrarModalGestion({ limpiarURL: false });
-        navegar('reagendar');
-        return;
-    }
-
-    cerrarModalGestion();
-    navegar('home');
 }
 
 // Confirmar reagendamiento (selección nueva fecha/hora)
