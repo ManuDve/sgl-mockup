@@ -343,6 +343,10 @@ function confirmarGestion() {
 
         mostrarNotificacion('Cancelación registrada', 'success');
         cerrarModalGestion();
+
+        // Limpiar querystring (accion/id/otp) una vez finalizada la gestión
+        window.history.replaceState({}, document.title, window.location.href.split('?')[0].split('#')[0]);
+
         navegar('gestionCancelado');
         return;
     }
@@ -407,6 +411,9 @@ function confirmarReagendamiento(event) {
         appData.gestion.otpIngresado = '';
         appData.gestion.contacto = '';
     }
+
+    // Limpiar querystring (accion/id/otp) una vez finalizada la gestión
+    window.history.replaceState({}, document.title, window.location.href.split('?')[0].split('#')[0]);
 
     navegar('gestionReagendado');
 }
