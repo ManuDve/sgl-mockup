@@ -6,7 +6,63 @@ function navegar(pagina) {
     window.scrollTo(0, 0);
 }
 
-// Lee la querystring para abrir automáticamente el flujo web de gestión (mock)
+// Acceso web para reagendar/cancelar
+function irGestionWeb() {
+    // En vez de abrir modal, navegamos a una vista simple (misma home) y mostramos el formulario inline.
+    appData.gestion = { accion: 'reagendar', id: '', otp: '', verificado: false, estado: 'idle' };
+    appData.currentPage = 'gestionWeb';
+    renderizar();
+    window.scrollTo(0, 0);
+}
+
+// Modal de confirmación final
+function abrirModalConfirmarGestion() {
+    const modal = document.getElementById('modalGestion');
+    if (modal) modal.classList.add('active');
+
+    const body = document.getElementById('modalGestionBody');
+    if (!body) return;
+
+    const accion = appData.gestion?.accion || 'reagendar';
+    const id = appData.gestion?.id || '-';
+    const titulo = accion === 'cancelar' ? 'Confirmar cancelación' : 'Confirmar reagendamiento';
+    const texto = accion === 'cancelar'
+        ? '¿Confirmas que deseas cancelar la cita?'
+        : '¿Confirmas que deseas solicitar el reagendamiento de la cita?';
+
+    body.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">${titulo}</h2>
+                <p class="text-sm text-gray-600 mt-1">${texto}</p>
+            </div>
+            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModalGestion()" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div class="mt-5 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+            <div class="flex justify-between gap-4 flex-wrap">
+                <div><span class="text-gray-500">ID de cita:</span> <span class="font-semibold">${id}</span></div>
+                <div><span class="text-gray-500">Acción:</span> <span class="font-semibold">${accion}</span></div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex gap-3 flex-wrap justify-end">
+            <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition" onclick="confirmarGestion()">Confirmar</button>
+            <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="cerrarModalGestion()">Cancelar</button>
+        </div>
+    `;
+}
+
+function cerrarModalGestion({ limpiarURL = true } = {}) {
+    const modal = document.getElementById('modalGestion');
+    if (modal) modal.classList.remove('active');
+
+    if (limpiarURL) {
+        window.history.replaceState({}, document.title, window.location.href.split('?')[0].split('#')[0]);
+    }
+}
+
+// Lee la querystring para preparar el flujo web (sin abrir modal)
 function navegarDesdeURL() {
     const params = new URLSearchParams(window.location.search);
     const accion = params.get('accion');
@@ -15,9 +71,12 @@ function navegarDesdeURL() {
         appData.gestion = {
             accion,
             id: params.get('id') || '',
-            otp: params.get('otp') || ''
+            otp: params.get('otp') || '',
+            verificado: false,
+            estado: 'idle'
         };
-        appData.currentPage = 'gestionar';
+        // Ir a la vista web de gestión
+        appData.currentPage = 'gestionWeb';
     }
 }
 
@@ -93,12 +152,6 @@ function irAdminLogin() {
     navegar('adminLogin');
 }
 
-// Acceso web para reagendar/cancelar (flujo gestion)
-function irGestionWeb() {
-    appData.gestion = { accion: 'reagendar', id: '', otp: '', verificado: false };
-    navegar('gestionar');
-}
-
 function loginAdmin(event) {
     event.preventDefault();
     const email = document.getElementById('adminEmail').value;
@@ -170,21 +223,34 @@ function mostrarEditarServicio(servicioId) {
 function verificarGestion(event) {
     event.preventDefault();
 
+    if (!appData.gestion) appData.gestion = {};
+    appData.gestion.estado = 'loading';
+    renderizar();
+
     const codigo = (document.getElementById('gestionOtp')?.value || '').trim();
     const contacto = (document.getElementById('gestionContacto')?.value || '').trim();
 
-    if (!codigo || !contacto) {
-        mostrarNotificacion('Completa el código y tu email o teléfono', 'error');
-        return;
-    }
+    setTimeout(() => {
+        if (!codigo || !contacto) {
+            appData.gestion.estado = 'idle';
+            renderizar();
+            mostrarNotificacion('Completa el código y tu email o teléfono', 'error');
+            return;
+        }
 
-    if (appData.gestion?.otp && codigo === appData.gestion.otp) {
-        appData.gestion.verificado = true;
-        mostrarNotificacion('Verificación exitosa', 'success');
-        renderizar();
-    } else {
-        mostrarNotificacion('Código inválido', 'error');
-    }
+        if (appData.gestion?.otp && codigo === appData.gestion.otp) {
+            appData.gestion.verificado = true;
+            appData.gestion.estado = 'idle';
+            renderizar();
+            mostrarNotificacion('Verificación exitosa', 'success');
+            // Modal solo para confirmar
+            abrirModalConfirmarGestion();
+        } else {
+            appData.gestion.estado = 'idle';
+            renderizar();
+            mostrarNotificacion('Código inválido', 'error');
+        }
+    }, 650);
 }
 
 function confirmarGestion() {
@@ -196,7 +262,6 @@ function confirmarGestion() {
     const accion = appData.gestion.accion;
     const id = appData.gestion.id;
 
-    // Nota: appData.agendamientos es un wrapper; find() busca sobre el array interno
     const ag = appData.agendamientos.find(a => String(a.id) === String(id));
 
     if (accion === 'cancelar') {
@@ -209,7 +274,8 @@ function confirmarGestion() {
         mostrarNotificacion('Solicitud de reagendamiento registrada', 'success');
     }
 
-    window.history.replaceState({}, document.title, window.location.pathname);
+    cerrarModalGestion();
+    // Volver a inicio
     navegar('home');
 }
 
@@ -360,16 +426,13 @@ function renderizar() {
             setTimeout(mostrarConfirmacion, 100);
             break;
 
-        case 'gestionar':
+        case 'gestionWeb':
             contenido += `
                 <section class="py-12">
                     <div class="max-w-2xl mx-auto px-4">
                         <div class="bg-white rounded-lg shadow-lg p-8 border">
                             <h2 class="text-3xl font-semibold text-gray-900">Gestión de cita</h2>
-                            <p class="text-gray-600 mt-2">
-                                Para <span class="font-semibold">${appData.gestion?.accion === 'cancelar' ? 'cancelar' : 'reagendar'}</span> una consulta,
-                                valida tu identidad con el código de verificación.
-                            </p>
+                            <p class="text-gray-600 mt-2">Ingresa el código de verificación y tu contacto para continuar.</p>
 
                             <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
                                 <div class="flex justify-between gap-4 flex-wrap">
@@ -378,38 +441,27 @@ function renderizar() {
                                 </div>
                             </div>
 
-                            ${appData.gestion?.verificado ? `
-                                <div class="mt-6 p-4 border rounded-lg bg-white">
-                                    <h3 class="font-semibold text-gray-900">Identidad verificada</h3>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        Confirma la solicitud para continuar.
-                                    </p>
-                                    <div class="flex gap-3 mt-4 flex-wrap">
-                                        <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium" onclick="confirmarGestion()">Confirmar</button>
-                                        <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium" onclick="navegar('home')">Volver</button>
-                                    </div>
+                            <div class="mt-6 flex gap-2">
+                                <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion !== 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'} transition" onclick="appData.gestion.accion='reagendar'; renderizar();">Reagendar</button>
+                                <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion === 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'} transition" onclick="appData.gestion.accion='cancelar'; renderizar();">Cancelar</button>
+                            </div>
+
+                            <form class="mt-6 space-y-4" onsubmit="verificarGestion(event)">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Código de verificación</label>
+                                    <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Ingresa el código" value="${appData.gestion?.otp || ''}" />
                                 </div>
-                            ` : `
-                                <div class="mt-6 flex gap-2">
-                                    <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion !== 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'}" onclick="appData.gestion.accion='reagendar'; renderizar();">Reagendar</button>
-                                    <button type="button" class="px-4 py-2 rounded-full border ${appData.gestion?.accion === 'cancelar' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900'}" onclick="appData.gestion.accion='cancelar'; renderizar();">Cancelar</button>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email o teléfono</label>
+                                    <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Tu email o teléfono" />
                                 </div>
-                                <form class="mt-6 space-y-4" onsubmit="verificarGestion(event)">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Código de verificación</label>
-                                        <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Ingresa el código" value="${appData.gestion?.otp || ''}" />
-                                        <p class="text-xs text-gray-500 mt-2">El código se envía a tu WhatsApp.</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email o teléfono</label>
-                                        <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900" placeholder="Tu email o teléfono usado en el agendamiento" />
-                                    </div>
-                                    <div class="flex gap-3 pt-2 flex-wrap">
-                                        <button type="submit" class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium">Verificar</button>
-                                        <button type="button" class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium" onclick="navegar('home')">Cancelar</button>
-                                    </div>
-                                </form>
-                            `}
+                                <div class="flex gap-3 pt-1 flex-wrap">
+                                    <button type="submit" class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition flex items-center gap-2" ${appData.gestion?.estado === 'loading' ? 'disabled' : ''}>
+                                        ${appData.gestion?.estado === 'loading' ? '<span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span> Validando...' : 'Continuar'}
+                                    </button>
+                                    <button type="button" class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="navegar('home')">Volver</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </section>

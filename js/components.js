@@ -620,4 +620,26 @@ const Components = {
             </div>
         `;
     },
+
+    // Header Admin
+    adminHeader: () => `
+        <header class="bg-white text-gray-900 shadow-md border-b sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-gavel text-xl text-gray-700"></i>
+                    <h1 class="text-lg font-medium">${appData.estudioInfo.nombre} <span class="text-gray-500">/ Admin</span></h1>
+                </div>
+                <nav class="flex gap-4 flex-wrap items-center">
+                    <button onclick="navegar('adminDashboard')" class="text-sm text-gray-700 hover:text-gray-900 transition">Dashboard</button>
+                    <button onclick="navegar('adminAgendamientos')" class="text-sm text-gray-700 hover:text-gray-900 transition">Agendamientos</button>
+                    <button onclick="navegar('adminCalendario')" class="text-sm text-gray-700 hover:text-gray-900 transition">Calendario</button>
+                    <button onclick="navegar('adminServicios')" class="text-sm text-gray-700 hover:text-gray-900 transition">Servicios</button>
+                    <button onclick="navegar('adminUsuarios')" class="text-sm text-gray-700 hover:text-gray-900 transition">Usuarios</button>
+                    <button onclick="cerrarSesion()" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
+                        Cerrar sesión
+                    </button>
+                </nav>
+            </div>
+        </header>
+    `,
 };
