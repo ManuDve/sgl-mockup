@@ -427,8 +427,13 @@ async function adminCancelarAgendamiento(agendamientoId) {
         return;
     }
 
-    // Confirmación antes de cancelar
-    const ok = window.confirm(`¿Cancelar la cita ${ag.idExterno || ag.id} de ${ag.nombre}?\n\nEsta acción marcará la cita como cancelada.`);
+    // Confirmación antes de cancelar (modal)
+    const ok = await abrirModalConfirm({
+        titulo: 'Cancelar cita',
+        mensaje: `¿Cancelar la cita ${ag.idExterno || ag.id} de ${ag.nombre}?\n\nEsta acción marcará la cita como cancelada.`,
+        confirmText: 'Sí, cancelar',
+        cancelText: 'No, volver'
+    });
     if (!ok) return;
 
     mostrarNotificacion('Cancelando cita...', 'info');
@@ -511,4 +516,57 @@ function formatearFecha(fecha) {
 function formatearHora(fecha) {
     if (typeof fecha === 'string') fecha = new Date(fecha);
     return fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Modal de confirmación (tipo SweetAlert2, sin dependencias)
+function abrirModalConfirm({
+    titulo = 'Confirmar',
+    mensaje = '¿Estás seguro?',
+    confirmText = 'Confirmar',
+    cancelText = 'Volver'
+} = {}) {
+    return new Promise(resolve => {
+        const modalId = 'modalConfirm';
+        const modal = document.getElementById(modalId);
+        const body = document.getElementById(modalId + 'Body');
+
+        if (!modal || !body) {
+            // Fallback: si no existe el modal por alguna razón
+            resolve(window.confirm(mensaje));
+            return;
+        }
+
+        const close = (value) => {
+            try { cerrarModal(modalId); } catch (_) {
+                modal.classList.remove('active');
+            }
+            resolve(value);
+        };
+
+        // Render simple consistente con el resto (grises)
+        body.innerHTML = `
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">${titulo}</h2>
+                    <p class="text-sm text-gray-600 mt-1 whitespace-pre-line">${mensaje}</p>
+                </div>
+                <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" aria-label="Cerrar" onclick="window.__modalConfirmClose(false)">&times;</button>
+            </div>
+            <div class="mt-6 flex justify-end gap-2 flex-wrap">
+                <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="window.__modalConfirmClose(false)">${cancelText}</button>
+                <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition" onclick="window.__modalConfirmClose(true)">${confirmText}</button>
+            </div>
+        `;
+
+        // Exponer callback temporal para que funcione con onclick inline
+        window.__modalConfirmClose = close;
+
+        // Cerrar si se hace click fuera del contenido
+        const onBackdropClick = (e) => {
+            if (e.target === modal) close(false);
+        };
+        modal.addEventListener('click', onBackdropClick, { once: true });
+
+        abrirModal(modalId);
+    });
 }
