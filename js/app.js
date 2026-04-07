@@ -25,10 +25,34 @@ function abrirModalConfirmarGestion() {
 
     const accion = appData.gestion?.accion || 'reagendar';
     const id = appData.gestion?.id || '-';
+
+    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+
     const titulo = accion === 'cancelar' ? 'Confirmar cancelación' : 'Confirmar reagendamiento';
     const texto = accion === 'cancelar'
         ? '¿Confirmas que deseas cancelar la cita?'
-        : '¿Confirmas que deseas solicitar el reagendamiento de la cita?';
+        : '¿Confirmas que deseas reagendar la cita?';
+
+    const detalleCita = ag ? `
+        <div class="mt-5 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+            <div class="font-semibold text-gray-900 mb-2">Datos de la cita</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.id}</span></div>
+                <div><span class="text-gray-500">Estado:</span> <span class="font-semibold">${ag.estado}</span></div>
+                <div><span class="text-gray-500">Cliente:</span> <span class="font-semibold">${ag.nombre}</span></div>
+                <div><span class="text-gray-500">Contacto:</span> <span class="font-semibold">${ag.email || ag.telefono || '-'}</span></div>
+                <div><span class="text-gray-500">Materia:</span> <span class="font-semibold">${ag.materia}</span></div>
+                <div><span class="text-gray-500">Monto:</span> <span class="font-semibold">$${(ag.monto || 0).toLocaleString()}</span></div>
+                <div><span class="text-gray-500">Fecha:</span> <span class="font-semibold">${ag.fecha}</span></div>
+                <div><span class="text-gray-500">Hora:</span> <span class="font-semibold">${ag.hora}</span></div>
+            </div>
+        </div>
+    ` : `
+        <div class="mt-5 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900">
+            <div class="font-semibold">No se encontró la cita</div>
+            <div class="mt-1 text-yellow-800">Para ver los datos, ingresa desde el enlace que trae el ID en la URL.</div>
+        </div>
+    `;
 
     body.innerHTML = `
         <div class="flex items-start justify-between gap-4">
@@ -39,12 +63,14 @@ function abrirModalConfirmarGestion() {
             <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="cerrarModalGestion()" aria-label="Cerrar">&times;</button>
         </div>
 
-        <div class="mt-5 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+        <div class="mt-5 bg-white border rounded-lg p-4 text-sm text-gray-700">
             <div class="flex justify-between gap-4 flex-wrap">
-                <div><span class="text-gray-500">ID de cita:</span> <span class="font-semibold">${id}</span></div>
+                <div><span class="text-gray-500">ID (link):</span> <span class="font-semibold">${id}</span></div>
                 <div><span class="text-gray-500">Acción:</span> <span class="font-semibold">${accion}</span></div>
             </div>
         </div>
+
+        ${detalleCita}
 
         <div class="mt-6 flex gap-3 flex-wrap justify-end">
             <button class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition" onclick="confirmarGestion()">Confirmar</button>
@@ -280,16 +306,55 @@ function confirmarGestion() {
 
     if (accion === 'cancelar') {
         if (ag) ag.estado = 'Cancelado';
-        mostrarNotificacion('Solicitud de cancelación registrada', 'success');
+        mostrarNotificacion('Cancelación registrada', 'success');
+        cerrarModalGestion();
+        navegar('home');
+        return;
     }
 
     if (accion === 'reagendar') {
         if (ag) ag.estado = 'Pendiente Reagendamiento';
-        mostrarNotificacion('Solicitud de reagendamiento registrada', 'success');
+        // Ir a la pantalla de selección de nueva fecha/hora
+        cerrarModalGestion({ limpiarURL: false });
+        navegar('reagendar');
+        return;
     }
 
     cerrarModalGestion();
-    // Volver a inicio
+    navegar('home');
+}
+
+// Confirmar reagendamiento (selección nueva fecha/hora)
+function confirmarReagendamiento(event) {
+    event.preventDefault();
+
+    const id = appData.gestion?.id;
+    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+
+    const nuevaFecha = (document.getElementById('reagendarFecha')?.value || '').trim();
+    const nuevaHora = (document.getElementById('reagendarHora')?.value || '').trim();
+
+    if (!nuevaFecha || !nuevaHora) {
+        mostrarNotificacion('Selecciona una nueva fecha y hora', 'error');
+        return;
+    }
+
+    if (ag) {
+        ag.fecha = nuevaFecha;
+        ag.hora = nuevaHora;
+        ag.estado = 'Reagendado';
+    }
+
+    mostrarNotificacion('Cita reagendada', 'success');
+
+    // Limpieza mínima del estado del flujo
+    if (appData.gestion) {
+        appData.gestion.verificado = false;
+        appData.gestion.estado = 'idle';
+        appData.gestion.otpIngresado = '';
+        appData.gestion.contacto = '';
+    }
+
     navegar('home');
 }
 
@@ -488,6 +553,62 @@ function renderizar() {
                 </section>
             `;
             break;
+
+        case 'reagendar': {
+            const id = appData.gestion?.id || '-';
+            const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+
+            contenido += `
+                <section class="py-12">
+                    <div class="max-w-2xl mx-auto px-4">
+                        <div class="bg-white rounded-lg shadow-lg p-8 border">
+                            <h2 class="text-3xl font-semibold text-gray-900">Reagendar cita</h2>
+                            <p class="text-gray-600 mt-2">Selecciona una nueva fecha y hora para tu consulta.</p>
+
+                            ${ag ? `
+                            <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+                                <div class="font-semibold text-gray-900 mb-2">Cita actual</div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div><span class="text-gray-500">ID:</span> <span class="font-semibold">${ag.id}</span></div>
+                                    <div><span class="text-gray-500">Materia:</span> <span class="font-semibold">${ag.materia}</span></div>
+                                    <div><span class="text-gray-500">Fecha:</span> <span class="font-semibold">${ag.fecha}</span></div>
+                                    <div><span class="text-gray-500">Hora:</span> <span class="font-semibold">${ag.hora}</span></div>
+                                </div>
+                            </div>
+                            ` : `
+                            <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900">
+                                <div class="font-semibold">No se encontró la cita</div>
+                                <div class="mt-1 text-yellow-800">Vuelve a abrir el enlace de WhatsApp/correo para reagendar con tu ID.</div>
+                            </div>
+                            `}
+
+                            <form class="mt-6 space-y-4" onsubmit="confirmarReagendamiento(event)">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nueva fecha</label>
+                                    <select id="reagendarFecha" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900">
+                                        <option value="">-- Selecciona una fecha --</option>
+                                        ${obtenerFechasDisponibles().map(f => `<option value="${f.fecha}">${f.dia}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nueva hora</label>
+                                    <select id="reagendarHora" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900">
+                                        <option value="">-- Selecciona una hora --</option>
+                                        ${appData.horarios.map(h => `<option value="${h}">${h}</option>`).join('')}
+                                    </select>
+                                </div>
+
+                                <div class="flex gap-3 pt-1 flex-wrap justify-end">
+                                    <button type="submit" class="bg-gray-900 text-white px-5 py-2 rounded-full font-medium hover:bg-gray-800 transition">Confirmar reagendamiento</button>
+                                    <button type="button" class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="navegar('home')">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            `;
+            break;
+        }
 
         default:
             contenido += Components.hero();

@@ -6,8 +6,7 @@ const Components = {
         <header class="bg-white text-gray-900 shadow-md sticky top-0 z-50 border-b">
             <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-gavel text-xl text-gray-700"></i>
-                    <h1 class="text-xl font-medium tracking-tight">${appData.estudioInfo.nombre}</h1>
+                    <button onclick="navegar('home')" class="font-bold text-gray-900 tracking-tight" aria-label="Ir al inicio">SGL</button>
                 </div>
                 <nav class="flex gap-4 items-center">
                     <button onclick="navegar('home')" class="text-sm text-gray-700 hover:text-gray-900 transition">Inicio</button>
@@ -290,7 +289,7 @@ const Components = {
                 </div>
 
                 <div class="bg-white rounded-lg shadow-md p-6 border">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-4">Usuarios</h3>
+                    <h3 class="text-sm font-semibold mb-4">Usuarios</h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-gray-50 border rounded-lg p-4">
                             <p class="text-xs text-gray-500">Total</p>
@@ -623,21 +622,22 @@ const Components = {
 
     // Header Admin
     adminHeader: () => `
-        <header class="bg-white text-gray-900 shadow-md border-b sticky top-0 z-50">
-            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <header class="bg-white shadow-md sticky top-0 z-50 border-b">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-gavel text-xl text-gray-700"></i>
-                    <h1 class="text-lg font-medium">${appData.estudioInfo.nombre} <span class="text-gray-500">/ Admin</span></h1>
+                    <button onclick="navegar('home')" class="font-bold text-gray-900 tracking-tight" aria-label="Ir al inicio">SGL</button>
+                    <div>
+                        <h1 class="text-xl font-medium tracking-tight text-gray-900">Panel Administrativo</h1>
+                        <p class="text-xs text-gray-500">Gestión de estudio jurídico</p>
+                    </div>
                 </div>
-                <nav class="flex gap-4 flex-wrap items-center">
+                <nav class="flex gap-4 items-center">
                     <button onclick="navegar('adminDashboard')" class="text-sm text-gray-700 hover:text-gray-900 transition">Dashboard</button>
                     <button onclick="navegar('adminAgendamientos')" class="text-sm text-gray-700 hover:text-gray-900 transition">Agendamientos</button>
                     <button onclick="navegar('adminCalendario')" class="text-sm text-gray-700 hover:text-gray-900 transition">Calendario</button>
                     <button onclick="navegar('adminServicios')" class="text-sm text-gray-700 hover:text-gray-900 transition">Servicios</button>
                     <button onclick="navegar('adminUsuarios')" class="text-sm text-gray-700 hover:text-gray-900 transition">Usuarios</button>
-                    <button onclick="cerrarSesion()" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
-                        Cerrar sesión
-                    </button>
+                    <button onclick="cerrarSesion()" class="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">Cerrar sesión</button>
                 </nav>
             </div>
         </header>
