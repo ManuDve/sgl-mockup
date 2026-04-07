@@ -20,7 +20,8 @@ const appData = {
         whatsapp: '+56 9 8765 4321'
     },
 
-    agendamientos: [
+    // Fuente única (array) de agendamientos
+    _agendamientos: [
         { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 25000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
         { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 40000, estado: 'Confirmado', fechaCreacion: new Date() }
     ],
@@ -49,9 +50,34 @@ const appData = {
     usuario: { nombre: 'Administrador', email: 'admin@estudiojuridico.cl' }
 };
 
+// Agendamientos (array) + vistas derivadas
+Object.defineProperty(appData, 'agendamientos', {
+    get() {
+        return this._agendamientos;
+    },
+    set(value) {
+        this._agendamientos = Array.isArray(value) ? value : [];
+    }
+});
+
+Object.defineProperty(appData, 'agendamientosPendientes', {
+    get() {
+        return (this._agendamientos || []).filter(a => a.estado === 'Pendiente Pago');
+    }
+});
+
+Object.defineProperty(appData, 'agendamientosHistorial', {
+    get() {
+        return (this._agendamientos || []).filter(a => a.estado !== 'Pendiente Pago');
+    }
+});
+
 // Función para guardar agendamiento
 function guardarAgendamiento(datos) {
-    appData.agendamientos.push(datos);
+    // Asegurar array
+    if (!Array.isArray(appData._agendamientos)) appData._agendamientos = [];
+
+    appData._agendamientos.push(datos);
 
     // Contar solicitudes por materia
     const materia = appData.servicios.find(s => s.nombre === datos.materia);
@@ -83,36 +109,3 @@ function obtenerFechasDisponibles() {
 
     return fechas;
 }
-
-// Separar agendamientos en pendientes e historial
-Object.defineProperty(appData, 'agendamientos', {
-    get() {
-        const pendientes = this._agendamientos?.filter(a => a.estado === 'Pendiente Pago') || [];
-        const historial = this._agendamientos?.filter(a => a.estado !== 'Pendiente Pago') || [];
-        return {
-            pendientes,
-            historial,
-            [Symbol.iterator]: function*() {
-                yield* this._agendamientos || [];
-            },
-            find: function(callback) {
-                return (this._agendamientos || []).find(callback);
-            },
-            filter: function(callback) {
-                return (this._agendamientos || []).filter(callback);
-            },
-            reduce: function(callback, initial) {
-                return (this._agendamientos || []).reduce(callback, initial);
-            },
-            _agendamientos: this._agendamientos || [
-                { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 25000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
-                { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 40000, estado: 'Confirmado', fechaCreacion: new Date() }
-            ]
-        };
-    },
-    set(value) {
-        this._agendamientos = value;
-    }
-});
-
-appData._agendamientos = appData.agendamientos;

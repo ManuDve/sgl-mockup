@@ -1,5 +1,20 @@
 // Aplicación principal
 
+// Fallback de notificaciones (si admin.js no está cargado)
+if (typeof window.mostrarNotificacion !== 'function') {
+    window.mostrarNotificacion = function (mensaje, tipo = 'info') {
+        const notif = document.createElement('div');
+        notif.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+            tipo === 'success' ? 'bg-green-600' :
+            tipo === 'error' ? 'bg-red-600' :
+            'bg-blue-600'
+        } shadow-lg z-50 fade-in`;
+        notif.textContent = mensaje;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
+    };
+}
+
 function navegar(pagina) {
     appData.currentPage = pagina;
     renderizar();
@@ -160,29 +175,73 @@ function enviarFormulario(event) {
     event.preventDefault();
 
     const form = event.target;
-    const formData = new FormData(form);
-    const datos = Object.fromEntries(formData);
+    const btn = form?.querySelector('button[type="submit"]');
 
-    const servicio = appData.servicios.find(s => s.id === parseInt(datos.materia));
+    // Loading UI (si existe UI helper del módulo admin)
+    if (btn && typeof UI !== 'undefined' && typeof UI.setBtnLoading === 'function') {
+        UI.setBtnLoading(btn, true, 'Agendando...');
+    } else if (btn) {
+        btn.disabled = true;
+        btn.dataset._oldText = btn.innerHTML;
+        btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin mr-2"></span> Agendando...';
+    }
 
-    const agendamiento = {
-        id: Date.now(),
-        nombre: datos.nombre,
-        email: datos.email,
-        telefono: datos.telefono,
-        materia: servicio.nombre,
-        descripcion: datos.descripcion,
-        fecha: datos.fecha,
-        hora: datos.hora,
-        monto: servicio.precio,
-        estado: 'Pendiente Pago',
-        fechaCreacion: new Date()
-    };
+    // Transición suave del contenido (si existe clase)
+    const appEl = document.getElementById('app');
+    if (appEl) appEl.classList.add('opacity-80');
 
-    guardarAgendamiento(agendamiento);
-    appData.ultimoAgendamiento = agendamiento;
+    setTimeout(() => {
+        try {
+            const formData = new FormData(form);
+            const datos = Object.fromEntries(formData);
 
-    navegar('confirmacion');
+            const servicio = appData.servicios.find(s => s.id === parseInt(datos.materia));
+            if (!servicio) {
+                throw new Error('Servicio inválido');
+            }
+
+            const agendamiento = {
+                id: Date.now(),
+                nombre: datos.nombre,
+                email: datos.email,
+                telefono: datos.telefono,
+                materia: servicio.nombre,
+                descripcion: datos.descripcion,
+                fecha: datos.fecha,
+                hora: datos.hora,
+                monto: servicio.precio,
+                estado: 'Pendiente Pago',
+                fechaCreacion: new Date()
+            };
+
+            guardarAgendamiento(agendamiento);
+            appData.ultimoAgendamiento = agendamiento;
+
+            // Notificación de éxito
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion('Agendamiento realizado correctamente', 'success');
+            } else {
+                console.log('Agendamiento realizado correctamente');
+            }
+
+            navegar('confirmacion');
+        } catch (e) {
+            console.error(e);
+            if (typeof mostrarNotificacion === 'function') {
+                mostrarNotificacion('No se pudo agendar. Revisa los datos e intenta nuevamente.', 'error');
+            }
+
+            // Rehabilitar botón si falló
+            if (btn && typeof UI !== 'undefined' && typeof UI.setBtnLoading === 'function') {
+                UI.setBtnLoading(btn, false);
+            } else if (btn) {
+                btn.disabled = false;
+                if (btn.dataset._oldText) btn.innerHTML = btn.dataset._oldText;
+            }
+        } finally {
+            if (appEl) appEl.classList.remove('opacity-80');
+        }
+    }, 550);
 }
 
 function mostrarConfirmacion() {
