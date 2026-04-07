@@ -397,70 +397,71 @@ const Components = {
         });
 
         return `
-        <div class="max-w-6xl mx-auto px-4 py-12">
-            <div class="flex items-end justify-between gap-6 flex-wrap mb-6">
-                <div>
-                    <h2 class="text-3xl font-semibold text-gray-900">Agendamientos</h2>
-                    <p class="text-sm text-gray-600 mt-1">Gestiona pagos, estados y cotizaciones.</p>
-                </div>
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="abrirModalCotizacionLibre()" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
-                        <i class="fas fa-file-invoice"></i>
-                        Cotización libre
-                    </button>
-                    <button onclick="navegar('adminCalendario')" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
-                        <i class="fas fa-calendar-alt"></i>
-                        Ver calendario
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 border">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Pendientes de pago</h3>
-                <div class="space-y-4">
-                    ${pendientesOrdenados.map(a => `
-                        <div class="bg-gray-50 p-4 rounded-lg border">
-                            <div class="flex justify-between items-center gap-4 flex-wrap">
-                                <div>
-                                    <div class="text-sm text-gray-500">${a.materia}</div>
-                                    <div class="font-semibold text-gray-900">${a.nombre}</div>
-                                    <div class="text-sm text-gray-600 mt-1">${new Date(a.fecha).toLocaleDateString()} • ${a.hora}</div>
-                                </div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs px-3 py-1 rounded-full bg-white border text-gray-700">${a.estado}</span>
-                                    <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
-                                    <button onclick="abrirModalPago(${a.id})" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">Confirmar pago</button>
-                                    ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
-                                </div>
-                            </div>
-                            <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
-                        </div>
-                    `).join('')}
+            <div class="max-w-6xl mx-auto px-4 py-12">
+                <div class="flex items-end justify-between gap-6 flex-wrap mb-6">
+                    <div>
+                        <h2 class="text-3xl font-semibold text-gray-900">Agendamientos</h2>
+                        <p class="text-sm text-gray-600 mt-1">Gestiona pagos, estados y cotizaciones.</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="abrirModalCotizacionLibre()" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
+                            <i class="fas fa-file-invoice"></i>
+                            Cotización libre
+                        </button>
+                        <button onclick="navegar('adminCalendario')" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
+                            <i class="fas fa-calendar-alt"></i>
+                            Ver calendario
+                        </button>
+                    </div>
                 </div>
 
-                <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-4">Historial</h3>
-                <div class="space-y-4">
-                    ${historialOrdenado.map(a => `
-                        <div class="bg-white p-4 rounded-lg border">
-                            <div class="flex justify-between items-center gap-4 flex-wrap">
-                                <div>
-                                    <div class="text-sm text-gray-500">${a.materia}</div>
-                                    <div class="font-semibold text-gray-900">${a.nombre}</div>
-                                    <div class="text-sm text-gray-600 mt-1">${new Date(a.fecha).toLocaleDateString()} • ${a.hora}</div>
+                <div class="bg-white rounded-lg shadow-md p-6 border">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Pendientes de pago</h3>
+                    <div class="space-y-4">
+                        ${pendientesOrdenados.map(a => `
+                            <div class="bg-gray-50 p-4 rounded-lg border">
+                                <div class="flex justify-between items-center gap-4 flex-wrap">
+                                    <div>
+                                        <div class="text-sm text-gray-500">${a.materia}</div>
+                                        <div class="font-semibold text-gray-900">${a.nombre}</div>
+                                        <div class="text-sm text-gray-600 mt-1">${new Date(a.fecha).toLocaleDateString()} • ${a.hora}</div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs px-3 py-1 rounded-full bg-white border text-gray-700">${a.estado}</span>
+                                        <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
+                                        <button onclick="abrirModalPago(${a.id})" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">Confirmar pago</button>
+                                        ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs px-3 py-1 rounded-full bg-gray-50 border text-gray-700">${a.estado}</span>
-                                    <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
-                                    ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
-                                </div>
+                                <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
                             </div>
-                            <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-4">Historial</h3>
+                    <div class="space-y-4">
+                        ${historialOrdenado.map(a => `
+                            <div class="bg-white p-4 rounded-lg border">
+                                <div class="flex justify-between items-center gap-4 flex-wrap">
+                                    <div>
+                                        <div class="text-sm text-gray-500">${a.materia}</div>
+                                        <div class="font-semibold text-gray-900">${a.nombre}</div>
+                                        <div class="text-sm text-gray-600 mt-1">${new Date(a.fecha).toLocaleDateString()} • ${a.hora}</div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs px-3 py-1 rounded-full bg-gray-50 border text-gray-700">${a.estado}</span>
+                                        <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
+                                        ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
-        </div>
-    `,
+        `;
+    },
 
     // Página de Usuarios en Panel Administrativo
     adminUsuarios: () => `
@@ -663,3 +664,6 @@ const Components = {
         </header>
     `,
 };
+
+// Exponer en global (evita "Components is not defined" si el script se carga como módulo/orden distinto)
+window.Components = Components;
