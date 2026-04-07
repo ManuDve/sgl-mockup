@@ -211,6 +211,84 @@ if (typeof window.cerrarModalDetalleAgendamiento !== 'function') {
     };
 }
 
+// Flujo web (mock) para reagendar/cancelar con verificación
+function verificarGestion(event) {
+    event.preventDefault();
+
+    if (!appData.gestion) appData.gestion = {};
+
+    // Captura una vez antes de re-renderizar (evita perder valores al refrescar el DOM)
+    const codigoIngresado = (document.getElementById('gestionOtp')?.value || '').trim();
+    const contactoIngresado = (document.getElementById('gestionContacto')?.value || '').trim();
+
+    // Persistir lo que el usuario ingresó en el estado
+    appData.gestion.otpIngresado = codigoIngresado;
+    appData.gestion.contacto = contactoIngresado;
+
+    appData.gestion.estado = 'loading';
+    renderizar();
+
+    setTimeout(() => {
+        const codigo = (appData.gestion?.otpIngresado || '').trim();
+        const contacto = (appData.gestion?.contacto || '').trim();
+
+        if (!codigo || !contacto) {
+            appData.gestion.estado = 'idle';
+            renderizar();
+            mostrarNotificacion('Completa el código y tu email o teléfono', 'error');
+            return;
+        }
+
+        const otpEsperado = (appData.gestion?.otp || '').trim();
+
+        // Si se ingresa desde el enlace (WhatsApp/correo) viene otp esperado.
+        // Si se inicia desde el sitio (botón Inicio) puede no existir otp esperado; aceptamos cualquier código para avanzar.
+        const ok = otpEsperado ? (codigo === otpEsperado) : true;
+
+        appData.gestion.estado = 'idle';
+
+        if (ok) {
+            appData.gestion.verificado = true;
+            renderizar();
+            mostrarNotificacion('Verificación exitosa', 'success');
+            abrirModalConfirmarGestion();
+        } else {
+            renderizar();
+            mostrarNotificacion('Código inválido', 'error');
+        }
+    }, 650);
+}
+
+function confirmarGestion() {
+    if (!appData.gestion?.verificado) {
+        mostrarNotificacion('Debes verificar tu identidad antes de continuar', 'error');
+        return;
+    }
+
+    const accion = appData.gestion.accion;
+    const id = appData.gestion.id;
+
+    const ag = obtenerAgendamientoPorId(id);
+
+    if (accion === 'cancelar') {
+        if (ag) ag.estado = 'Cancelado';
+        mostrarNotificacion('Cancelación registrada', 'success');
+        cerrarModalGestion();
+        navegar('home');
+        return;
+    }
+
+    if (accion === 'reagendar') {
+        if (ag) ag.estado = 'Pendiente Reagendamiento';
+        cerrarModalGestion({ limpiarURL: false });
+        navegar('reagendar');
+        return;
+    }
+
+    cerrarModalGestion();
+    navegar('home');
+}
+
 // Funciones de Admin
 function irAdminLogin() {
     navegar('adminLogin');
