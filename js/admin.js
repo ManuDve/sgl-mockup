@@ -427,6 +427,10 @@ async function adminCancelarAgendamiento(agendamientoId) {
         return;
     }
 
+    // Confirmación antes de cancelar
+    const ok = window.confirm(`¿Cancelar la cita ${ag.idExterno || ag.id} de ${ag.nombre}?\n\nEsta acción marcará la cita como cancelada.`);
+    if (!ok) return;
+
     mostrarNotificacion('Cancelando cita...', 'info');
     await UI.delay(450);
 
