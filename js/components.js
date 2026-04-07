@@ -430,6 +430,8 @@ const Components = {
                                         <span class="text-xs px-3 py-1 rounded-full bg-white border text-gray-700">${a.estado}</span>
                                         <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
                                         <button onclick="abrirModalPago(${a.id})" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">Confirmar pago</button>
+                                        <button onclick="adminIniciarReagendar(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Reagendar</button>
+                                        <button onclick="adminCancelarAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cancelar</button>
                                         ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
                                     </div>
                                 </div>
@@ -451,6 +453,10 @@ const Components = {
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-xs px-3 py-1 rounded-full bg-gray-50 border text-gray-700">${a.estado}</span>
                                         <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
+                                        ${a.estado !== 'Cancelado' ? `
+                                            <button onclick="adminIniciarReagendar(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Reagendar</button>
+                                            <button onclick="adminCancelarAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cancelar</button>
+                                        ` : ''}
                                         ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
                                     </div>
                                 </div>

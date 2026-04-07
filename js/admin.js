@@ -174,6 +174,10 @@ async function adminAbrirDetalleAgendamiento(agendamientoId) {
             ${ag.estado === 'Confirmado' ? `
                 <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="abrirModalCotizacion(${ag.id})">Cotizar</button>
             ` : ''}
+            ${ag.estado !== 'Cancelado' ? `
+                <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="adminIniciarReagendar(${ag.id})">Reagendar</button>
+                <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="adminCancelarAgendamiento(${ag.id})">Cancelar</button>
+            ` : ''}
             <button class="bg-white border text-gray-900 px-5 py-2 rounded-full font-medium hover:bg-gray-50 transition" onclick="cerrarModalDetalleAgendamiento()">Cerrar</button>
         </div>
     `;
@@ -408,6 +412,61 @@ async function actualizarPrecioMateria(servicioId, nuevoPrecio) {
         mostrarNotificacion(`Precio actualizado: ${servicio.nombre}`, 'success');
         navegar('adminServicios');
     }
+}
+
+// Cancelar agendamiento (acción admin)
+async function adminCancelarAgendamiento(agendamientoId) {
+    const ag = appData.agendamientos.find(a => a.id === agendamientoId);
+    if (!ag) {
+        mostrarNotificacion('No se encontró el agendamiento', 'error');
+        return;
+    }
+
+    if (ag.estado === 'Cancelado') {
+        mostrarNotificacion('La cita ya está cancelada', 'info');
+        return;
+    }
+
+    mostrarNotificacion('Cancelando cita...', 'info');
+    await UI.delay(450);
+
+    ag.estado = 'Cancelado';
+    ag.fechaCancelacion = new Date();
+
+    try { cerrarModalDetalleAgendamiento(); } catch (_) {}
+    mostrarNotificacion('Cita cancelada', 'success');
+    navegar('adminAgendamientos');
+}
+
+// Iniciar reagendamiento manual (acción admin): usa el mismo flujo de reagendar del cliente, pero sin OTP
+function adminIniciarReagendar(agendamientoId) {
+    const ag = appData.agendamientos.find(a => a.id === agendamientoId);
+    if (!ag) {
+        mostrarNotificacion('No se encontró el agendamiento', 'error');
+        return;
+    }
+
+    if (ag.estado === 'Cancelado') {
+        mostrarNotificacion('No puedes reagendar una cita cancelada', 'error');
+        return;
+    }
+
+    // Reutiliza flujo existente en app.js (pantalla "reagendar")
+    appData.gestion = {
+        accion: 'reagendar',
+        id: String(ag.idExterno || ag.id),
+        otp: '',
+        verificado: true,
+        estado: 'idle',
+        otpIngresado: '',
+        contacto: ''
+    };
+
+    // Marcar estado si estaba confirmada o pendiente, para auditabilidad visual
+    ag.estado = 'Pendiente Reagendamiento';
+
+    try { cerrarModalDetalleAgendamiento(); } catch (_) {}
+    navegar('reagendar');
 }
 
 // Abrir/cerrar modal
