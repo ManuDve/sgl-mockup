@@ -13,4 +13,5 @@ npm-debug.log*
 .cache/
 dist/
 build/
+documents/
 

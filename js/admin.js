@@ -23,7 +23,7 @@ function loginAdmin(event) {
     if (email === adminCredenciales.email && password === adminCredenciales.password) {
         adminState.logueado = true;
         adminState.adminActual = { email, nombre: 'Administrador' };
-        navegar('dashboard');
+        navegar('adminDashboard');
         mostrarNotificacion('Bienvenido al panel administrativo', 'success');
     } else {
         mostrarNotificacion('Email o contraseña incorrectos', 'error');
@@ -36,6 +36,11 @@ function logoutAdmin() {
     adminState.adminActual = null;
     navegar('home');
     mostrarNotificacion('Sesión cerrada', 'info');
+}
+
+// Alias para compatibilidad con app.js
+function cerrarSesion() {
+    logoutAdmin();
 }
 
 // Mostrar notificación
@@ -78,7 +83,7 @@ function procesarConfirmacionPago(event) {
         adminState.agendamientoSeleccionado.fechaConfirmacion = new Date();
 
         cerrarModal('modalPago');
-        navegar('dashboard');
+        navegar('adminAgendamientos');
         mostrarNotificacion('Pago confirmado exitosamente', 'success');
     }
 }
@@ -122,7 +127,7 @@ function generarCotizacion(event) {
 
         cerrarModal('modalCotizacion');
         mostrarNotificacion('Cotización generada y descargada', 'success');
-        navegar('dashboard');
+        navegar('adminAgendamientos');
     }
 }
 
@@ -132,7 +137,7 @@ function cambiarEstadoAgendamiento(agendamientoId, nuevoEstado) {
     if (agendamiento) {
         agendamiento.estado = nuevoEstado;
         mostrarNotificacion(`Estado actualizado a: ${nuevoEstado}`, 'success');
-        navegar('dashboard');
+        navegar('adminAgendamientos');
     }
 }
 
@@ -153,7 +158,7 @@ function actualizarPrecioMateria(servicioId, nuevoPrecio) {
         });
 
         mostrarNotificacion(`Precio actualizado: ${servicio.nombre}`, 'success');
-        navegar('precios');
+        navegar('adminServicios');
     }
 }
 
@@ -191,4 +196,3 @@ function formatearHora(fecha) {
     if (typeof fecha === 'string') fecha = new Date(fecha);
     return fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 }
-

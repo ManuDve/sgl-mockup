@@ -6,6 +6,21 @@ function navegar(pagina) {
     window.scrollTo(0, 0);
 }
 
+// Lee la querystring para abrir automáticamente el flujo web de gestión (mock)
+function navegarDesdeURL() {
+    const params = new URLSearchParams(window.location.search);
+    const accion = params.get('accion');
+
+    if (accion === 'reagendar' || accion === 'cancelar') {
+        appData.gestion = {
+            accion,
+            id: params.get('id') || '',
+            otp: params.get('otp') || ''
+        };
+        appData.currentPage = 'gestionar';
+    }
+}
+
 function agendar(servicioId) {
     appData.formData.materiaId = servicioId;
     navegar('agendar');
@@ -145,6 +160,53 @@ function mostrarEditarServicio(servicioId) {
     }
 }
 
+// Flujo web (mock) para reagendar/cancelar con verificación
+function verificarGestion(event) {
+    event.preventDefault();
+
+    const codigo = (document.getElementById('gestionOtp')?.value || '').trim();
+    const contacto = (document.getElementById('gestionContacto')?.value || '').trim();
+
+    if (!codigo || !contacto) {
+        mostrarNotificacion('Completa el código y tu email o teléfono', 'error');
+        return;
+    }
+
+    if (appData.gestion?.otp && codigo === appData.gestion.otp) {
+        appData.gestion.verificado = true;
+        mostrarNotificacion('Verificación exitosa', 'success');
+        renderizar();
+    } else {
+        mostrarNotificacion('Código inválido', 'error');
+    }
+}
+
+function confirmarGestion() {
+    if (!appData.gestion?.verificado) {
+        mostrarNotificacion('Debes verificar tu identidad antes de continuar', 'error');
+        return;
+    }
+
+    const accion = appData.gestion.accion;
+    const id = appData.gestion.id;
+
+    // Nota: appData.agendamientos es un wrapper; find() busca sobre el array interno
+    const ag = appData.agendamientos.find(a => String(a.id) === String(id));
+
+    if (accion === 'cancelar') {
+        if (ag) ag.estado = 'Cancelado';
+        mostrarNotificacion('Solicitud de cancelación registrada', 'success');
+    }
+
+    if (accion === 'reagendar') {
+        if (ag) ag.estado = 'Pendiente Reagendamiento';
+        mostrarNotificacion('Solicitud de reagendamiento registrada', 'success');
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    navegar('home');
+}
+
 // Función auxiliar para renderizar
 function renderizar() {
     const app = document.getElementById('app');
@@ -210,8 +272,20 @@ function renderizar() {
             contenido += Components.adminAgendamientos();
             break;
 
+        case 'adminCalendario':
+            contenido += Components.adminCalendario();
+            break;
+
         case 'adminUsuarios':
             contenido += Components.adminUsuarios();
+            break;
+
+        case 'whatsapp':
+            contenido += Components.whatsappMockup();
+            // Inicializar conversación cuando el DOM ya exista
+            setTimeout(() => {
+                if (typeof waInitIfVisible === 'function') waInitIfVisible();
+            }, 50);
             break;
 
         case 'home':
@@ -220,17 +294,17 @@ function renderizar() {
                 <h2 class="text-3xl font-bold text-blue-900 mb-8 text-center">¿Por qué elegir nuestro estudio?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="text-center">
-                        <i class="fas fa-check-circle text-green-600 text-4xl mb-4"></i>
+                        <i class="fas fa-check-circle text-4xl mb-4 text-gray-600"></i>
                         <h3 class="font-bold text-lg mb-2">Rápido y Fácil</h3>
                         <p class="text-gray-600">Agenda tu consulta sin registro en segundos</p>
                     </div>
                     <div class="text-center">
-                        <i class="fas fa-shield-alt text-blue-600 text-4xl mb-4"></i>
+                        <i class="fas fa-shield-alt text-4xl mb-4 text-gray-600"></i>
                         <h3 class="font-bold text-lg mb-2">Seguro y Confidencial</h3>
                         <p class="text-gray-600">Tu información está protegida y es 100% confidencial</p>
                     </div>
                     <div class="text-center">
-                        <i class="fas fa-clock text-yellow-600 text-4xl mb-4"></i>
+                        <i class="fas fa-clock text-4xl mb-4 text-gray-600"></i>
                         <h3 class="font-bold text-lg mb-2">Disponible 24/7</h3>
                         <p class="text-gray-600">Elige el horario que mejor se adapte a ti</p>
                     </div>
@@ -261,6 +335,59 @@ function renderizar() {
             setTimeout(mostrarConfirmacion, 100);
             break;
 
+        case 'gestionar':
+            contenido += `
+                <section class="py-12">
+                    <div class="max-w-2xl mx-auto px-4">
+                        <div class="bg-white rounded-lg shadow-lg p-8">
+                            <h2 class="text-3xl font-bold text-blue-900">Verificación de identidad</h2>
+                            <p class="text-gray-600 mt-2">
+                                Para <span class="font-semibold">${appData.gestion?.accion === 'cancelar' ? 'cancelar' : 'reagendar'}</span> una consulta,
+                                valida tu identidad con el código entregado por WhatsApp.
+                            </p>
+
+                            <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
+                                <div class="flex justify-between gap-4 flex-wrap">
+                                    <div><span class="text-gray-500">ID de cita:</span> <span class="font-semibold">${appData.gestion?.id || '-'}</span></div>
+                                    <div><span class="text-gray-500">Acción:</span> <span class="font-semibold">${appData.gestion?.accion || '-'}</span></div>
+                                </div>
+                            </div>
+
+                            ${appData.gestion?.verificado ? `
+                                <div class="mt-6 p-4 border rounded-lg bg-white">
+                                    <h3 class="font-bold text-gray-900">Identidad verificada</h3>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        Puedes confirmar la solicitud. Esta operación es un mockup.
+                                    </p>
+                                    <div class="flex gap-3 mt-4">
+                                        <button class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold" onclick="confirmarGestion()">Confirmar</button>
+                                        <button class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold" onclick="navegar('home')">Volver</button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <form class="mt-6 space-y-4" onsubmit="verificarGestion(event)">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Código de verificación</label>
+                                        <input id="gestionOtp" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Ingresa el código de 6 dígitos" value="${appData.gestion?.otp || ''}" />
+                                        <p class="text-xs text-gray-500 mt-2">El código llega por WhatsApp y es válido por un tiempo limitado.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email o teléfono</label>
+                                        <input id="gestionContacto" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Tu email o teléfono usado en el agendamiento" />
+                                        <p class="text-xs text-gray-500 mt-2">Este campo simula una segunda verificación.</p>
+                                    </div>
+                                    <div class="flex gap-3 pt-2">
+                                        <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold">Verificar</button>
+                                        <button type="button" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-semibold" onclick="navegar('home')">Cancelar</button>
+                                    </div>
+                                </form>
+                            `}
+                        </div>
+                    </div>
+                </section>
+            `;
+            break;
+
         default:
             contenido += Components.hero();
     }
@@ -283,5 +410,6 @@ function renderizar() {
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
+    navegarDesdeURL();
     renderizar();
 });
