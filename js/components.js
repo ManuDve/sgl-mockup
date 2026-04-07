@@ -663,6 +663,85 @@ const Components = {
             </div>
         </header>
     `,
+
+    // Página de gestión cancelada
+    gestionCancelado: () => {
+        const r = appData.gestionResultado || {};
+        return `
+            <div class="max-w-2xl mx-auto py-12">
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center border">
+                    <div class="mb-6">
+                        <i class="fas fa-ban text-gray-900 text-6xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-semibold text-gray-900 mb-4">Cita cancelada</h2>
+                    <p class="text-gray-600 mb-6">Tu solicitud de cancelación fue registrada correctamente.</p>
+
+                    <div class="bg-gray-50 p-6 rounded-lg mb-6 text-left border">
+                        <h3 class="font-semibold text-gray-900 mb-4">Detalle</h3>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <div class="flex justify-between"><span class="text-gray-600">ID</span><span class="font-medium">${r.id || '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Materia</span><span class="font-medium">${r.materia || '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Fecha</span><span class="font-medium">${r.fecha || '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Hora</span><span class="font-medium">${r.hora || '-'}</span></div>
+                            <div class="border-t pt-2 mt-2 flex justify-between text-base font-semibold">
+                                <span>Estado</span>
+                                <span class="text-gray-900">Cancelado</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button onclick="navegar('home')" class="bg-gray-900 text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition">Volver al inicio</button>
+                        <button onclick="irGestionWeb()" class="bg-white border text-gray-900 px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition">Gestionar otra cita</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    // Página de gestión reagendada
+    gestionReagendado: () => {
+        const r = appData.gestionResultado || {};
+        return `
+            <div class="max-w-2xl mx-auto py-12">
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center border">
+                    <div class="mb-6">
+                        <i class="fas fa-calendar-check text-gray-900 text-6xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-semibold text-gray-900 mb-4">Cita reagendada</h2>
+                    <p class="text-gray-600 mb-6">Tu cita fue actualizada correctamente.</p>
+
+                    <div class="bg-gray-50 p-6 rounded-lg mb-6 text-left border">
+                        <h3 class="font-semibold text-gray-900 mb-4">Detalle</h3>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <div class="flex justify-between"><span class="text-gray-600">ID</span><span class="font-medium">${r.id || '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Materia</span><span class="font-medium">${r.materia || '-'}</span></div>
+
+                            <div class="mt-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nueva fecha y hora</div>
+                            <div class="flex justify-between"><span class="text-gray-600">Fecha</span><span class="font-medium">${r.fecha || '-'}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Hora</span><span class="font-medium">${r.hora || '-'}</span></div>
+
+                            ${(r.fechaAnterior || r.horaAnterior) ? `
+                                <div class="mt-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Anterior</div>
+                                <div class="flex justify-between"><span class="text-gray-600">Fecha</span><span class="font-medium">${r.fechaAnterior || '-'}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">Hora</span><span class="font-medium">${r.horaAnterior || '-'}</span></div>
+                            ` : ''}
+
+                            <div class="border-t pt-2 mt-2 flex justify-between text-base font-semibold">
+                                <span>Estado</span>
+                                <span class="text-gray-900">Reagendado</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button onclick="navegar('home')" class="bg-gray-900 text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition">Volver al inicio</button>
+                        <button onclick="irGestionWeb()" class="bg-white border text-gray-900 px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition">Gestionar otra cita</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
 };
 
 // Exponer en global (evita "Components is not defined" si el script se carga como módulo/orden distinto)

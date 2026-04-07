@@ -331,9 +331,19 @@ function confirmarGestion() {
 
     if (accion === 'cancelar') {
         if (ag) ag.estado = 'Cancelado';
+
+        // Guardar resultado para la pantalla final
+        appData.gestionResultado = {
+            tipo: 'cancelado',
+            id: ag?.idExterno || ag?.id || id,
+            materia: ag?.materia,
+            fecha: ag?.fecha,
+            hora: ag?.hora
+        };
+
         mostrarNotificacion('Cancelación registrada', 'success');
         cerrarModalGestion();
-        navegar('home');
+        navegar('gestionCancelado');
         return;
     }
 
@@ -368,11 +378,25 @@ function confirmarReagendamiento(event) {
         return;
     }
 
+    const fechaAnterior = ag?.fecha || null;
+    const horaAnterior = ag?.hora || null;
+
     if (ag) {
         ag.fecha = nuevaFecha;
         ag.hora = nuevaHora;
         ag.estado = 'Reagendado';
     }
+
+    // Guardar resultado para la pantalla final
+    appData.gestionResultado = {
+        tipo: 'reagendado',
+        id: ag?.idExterno || ag?.id || id,
+        materia: ag?.materia,
+        fechaAnterior,
+        horaAnterior,
+        fecha: nuevaFecha,
+        hora: nuevaHora
+    };
 
     mostrarNotificacion('Cita reagendada', 'success');
 
@@ -384,7 +408,7 @@ function confirmarReagendamiento(event) {
         appData.gestion.contacto = '';
     }
 
-    navegar('home');
+    navegar('gestionReagendado');
 }
 
 // Función auxiliar para renderizar
@@ -638,6 +662,18 @@ function renderizar() {
             `;
             break;
         }
+
+        case 'gestionCancelado':
+            contenido += `<section class="py-12 bg-white"><div class="max-w-6xl mx-auto px-4">`;
+            contenido += (Components.gestionCancelado ? Components.gestionCancelado() : Components.confirmacion());
+            contenido += `</div></section>`;
+            break;
+
+        case 'gestionReagendado':
+            contenido += `<section class="py-12 bg-white"><div class="max-w-6xl mx-auto px-4">`;
+            contenido += (Components.gestionReagendado ? Components.gestionReagendado() : Components.confirmacion());
+            contenido += `</div></section>`;
+            break;
 
         default:
             contenido += Components.hero();
