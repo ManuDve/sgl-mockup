@@ -243,7 +243,7 @@ const Components = {
     adminDashboard: () => {
         const actividad = [
             { fecha: '06/04/2026 10:12', titulo: 'Nueva solicitud de agendamiento', detalle: 'Juan Pérez — Derecho Civil — 10:00' },
-            { fecha: '06/04/2026 09:40', titulo: 'Pago confirmado', detalle: 'Agendamiento #2 — $180.000' },
+            { fecha: '06/04/2026 09:40', titulo: 'Pago confirmado', detalle: 'Agendamiento #2 — $40.000' },
             { fecha: '05/04/2026 18:05', titulo: 'Solicitud de reagendamiento', detalle: 'Agendamiento #1 — Pendiente de confirmación' },
             { fecha: '05/04/2026 12:30', titulo: 'Cotización generada', detalle: 'COT-20260405-001 — enviada al cliente' }
         ];
@@ -280,7 +280,7 @@ const Components = {
                 </div>
 
                 <div class="bg-white rounded-lg shadow-md p-6 border">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-4">Servicios más solicitados</h3>
+                    <h3 class="text-sm font-semibold mb-4">Servicios más solicitados</h3>
                     <ul class="text-sm text-gray-700">
                         ${topServicios
                             .map(s => `<li class="flex justify-between py-2 border-b last:border-b-0"><span>${s.nombre}</span><span class="font-semibold text-gray-900">${s.solicitudes || 0}</span></li>`)
@@ -390,10 +390,16 @@ const Components = {
                     <h2 class="text-3xl font-semibold text-gray-900">Agendamientos</h2>
                     <p class="text-sm text-gray-600 mt-1">Gestiona pagos, estados y cotizaciones.</p>
                 </div>
-                <button onclick="navegar('adminCalendario')" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
-                    <i class="fas fa-calendar-alt"></i>
-                    Ver calendario
-                </button>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="abrirModalCotizacionLibre()" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">
+                        <i class="fas fa-file-invoice"></i>
+                        Cotización libre
+                    </button>
+                    <button onclick="navegar('adminCalendario')" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">
+                        <i class="fas fa-calendar-alt"></i>
+                        Ver calendario
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-lg shadow-md p-6 border">
@@ -411,7 +417,7 @@ const Components = {
                                     <span class="text-xs px-3 py-1 rounded-full bg-white border text-gray-700">${a.estado}</span>
                                     <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
                                     <button onclick="abrirModalPago(${a.id})" class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition">Confirmar pago</button>
-                                    <button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>
+                                    ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
                                 </div>
                             </div>
                             <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
@@ -432,7 +438,7 @@ const Components = {
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xs px-3 py-1 rounded-full bg-gray-50 border text-gray-700">${a.estado}</span>
                                     <button onclick="mostrarDetallesAgendamiento(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Ver</button>
-                                    <button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>
+                                    ${a.estado === 'Confirmado' ? `<button onclick="abrirModalCotizacion(${a.id})" class="bg-white border text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition">Cotizar</button>` : ''}
                                 </div>
                             </div>
                             <div class="mt-3 text-sm text-gray-600">Monto: <span class="font-semibold text-gray-900">$${a.monto.toLocaleString()}</span></div>
@@ -608,7 +614,7 @@ const Components = {
                                         <td class="py-3 pr-4">
                                             <button class="bg-white border text-gray-900 px-3 py-1 rounded-full text-sm font-medium hover:bg-gray-50" onclick="mostrarDetallesAgendamiento(${a.id})">Ver</button>
                                             ${a.estado === 'Pendiente Pago' ? `<button class="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium ml-2 hover:bg-gray-800" onclick="abrirModalPago(${a.id})">Confirmar pago</button>` : ''}
-                                            <button class="bg-white border text-gray-900 px-3 py-1 rounded-full text-sm font-medium ml-2 hover:bg-gray-50" onclick="abrirModalCotizacion(${a.id})">Cotizar</button>
+                                            ${a.estado === 'Confirmado' ? `<button class="bg-white border text-gray-900 px-3 py-1 rounded-full text-sm font-medium ml-2 hover:bg-gray-50" onclick="abrirModalCotizacion(${a.id})">Cotizar</button>` : ''}
                                         </td>
                                     </tr>
                                 `).join('')}

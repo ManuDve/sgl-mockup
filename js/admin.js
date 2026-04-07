@@ -88,47 +88,93 @@ function procesarConfirmacionPago(event) {
     }
 }
 
-// Abrir modal de cotización
+// Abrir modal de cotización (solo para agendamientos pagados/confirmados)
 function abrirModalCotizacion(agendamientoId) {
     const agendamiento = appData.agendamientos.find(a => a.id === agendamientoId);
-    if (agendamiento) {
-        adminState.agendamientoSeleccionado = agendamiento;
-        document.getElementById('cotClienteNombre').value = agendamiento.nombre;
-        document.getElementById('cotClienteEmail').value = agendamiento.email;
-        document.getElementById('cotDescripcion').value = '';
-        document.getElementById('cotCosto').value = agendamiento.monto;
-        document.getElementById('cotPlazo').value = '15 días hábiles';
-        abrirModal('modalCotizacion');
+    if (!agendamiento) return;
+
+    if (agendamiento.estado !== 'Confirmado') {
+        mostrarNotificacion('Solo puedes cotizar después del pago (agendamiento confirmado)', 'error');
+        return;
     }
+
+    adminState.agendamientoSeleccionado = agendamiento;
+
+    const nombreEl = document.getElementById('cotClienteNombre');
+    const emailEl = document.getElementById('cotClienteEmail');
+
+    if (nombreEl) {
+        nombreEl.value = agendamiento.nombre;
+        nombreEl.readOnly = true;
+        nombreEl.classList.add('bg-gray-100');
+    }
+
+    if (emailEl) {
+        emailEl.value = agendamiento.email;
+        emailEl.readOnly = true;
+        emailEl.classList.add('bg-gray-100');
+    }
+
+    document.getElementById('cotDescripcion').value = '';
+    document.getElementById('cotCosto').value = agendamiento.monto;
+    document.getElementById('cotPlazo').value = '15 días hábiles';
+
+    abrirModal('modalCotizacion');
+}
+
+// Abrir cotización libre (no cliente): permite ingresar nombre/email manualmente
+function abrirModalCotizacionLibre() {
+    adminState.agendamientoSeleccionado = null;
+
+    const nombreEl = document.getElementById('cotClienteNombre');
+    const emailEl = document.getElementById('cotClienteEmail');
+
+    if (nombreEl) {
+        nombreEl.value = '';
+        nombreEl.readOnly = false;
+        nombreEl.classList.remove('bg-gray-100');
+    }
+
+    if (emailEl) {
+        emailEl.value = '';
+        emailEl.readOnly = false;
+        emailEl.classList.remove('bg-gray-100');
+    }
+
+    document.getElementById('cotDescripcion').value = '';
+    document.getElementById('cotCosto').value = '';
+    document.getElementById('cotPlazo').value = '15 días hábiles';
+
+    abrirModal('modalCotizacion');
 }
 
 // Generar cotización (simular descarga PDF)
 function generarCotizacion(event) {
     event.preventDefault();
 
+    const cotizacion = {
+        id: 'COT-' + Date.now(),
+        agendamiento: adminState.agendamientoSeleccionado ? adminState.agendamientoSeleccionado.id : null,
+        cliente: document.getElementById('cotClienteNombre').value,
+        email: document.getElementById('cotClienteEmail').value,
+        descripcion: document.getElementById('cotDescripcion').value,
+        costo: parseInt(document.getElementById('cotCosto').value),
+        plazo: document.getElementById('cotPlazo').value,
+        fecha: new Date()
+    };
+
+    // Guardar cotización
+    if (!appData.cotizaciones) appData.cotizaciones = [];
+    appData.cotizaciones.push(cotizacion);
+
+    // Marcar agendamiento como con cotización (si aplica)
     if (adminState.agendamientoSeleccionado) {
-        const cotizacion = {
-            id: 'COT-' + Date.now(),
-            agendamiento: adminState.agendamientoSeleccionado.id,
-            cliente: document.getElementById('cotClienteNombre').value,
-            email: document.getElementById('cotClienteEmail').value,
-            descripcion: document.getElementById('cotDescripcion').value,
-            costo: parseInt(document.getElementById('cotCosto').value),
-            plazo: document.getElementById('cotPlazo').value,
-            fecha: new Date()
-        };
-
-        // Guardar cotización
-        if (!appData.cotizaciones) appData.cotizaciones = [];
-        appData.cotizaciones.push(cotizacion);
-
-        // Marcar agendamiento como con cotización
         adminState.agendamientoSeleccionado.cotizacion = cotizacion.id;
-
-        cerrarModal('modalCotizacion');
-        mostrarNotificacion('Cotización generada y descargada', 'success');
-        navegar('adminAgendamientos');
     }
+
+    cerrarModal('modalCotizacion');
+    mostrarNotificacion('Cotización generada y descargada', 'success');
+    navegar('adminAgendamientos');
 }
 
 // Cambiar estado de agendamiento

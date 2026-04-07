@@ -1,10 +1,10 @@
 // Datos de configuración y estado de la aplicación
 const appData = {
     servicios: [
-        { id: 1, nombre: 'Derecho Civil', descripcion: 'Contratos, herencias, propiedad', precio: 150000, solicitudes: 12 },
-        { id: 2, nombre: 'Derecho Laboral', descripcion: 'Despidos, contratos, conflictos laborales', precio: 150000, solicitudes: 18 },
-        { id: 3, nombre: 'Derecho de Familia', descripcion: 'Divorcios, custodia, pensiones', precio: 180000, solicitudes: 24 },
-        { id: 4, nombre: 'Derecho Tributario', descripcion: 'Impuestos, declaraciones, auditorías', precio: 200000, solicitudes: 8 }
+        { id: 1, nombre: 'Derecho Civil', descripcion: 'Contratos, herencias, propiedad', precio: 25000, solicitudes: 12 },
+        { id: 2, nombre: 'Derecho Laboral', descripcion: 'Despidos, contratos, conflictos laborales', precio: 30000, solicitudes: 18 },
+        { id: 3, nombre: 'Derecho de Familia', descripcion: 'Divorcios, custodia, pensiones', precio: 40000, solicitudes: 24 },
+        { id: 4, nombre: 'Derecho Tributario', descripcion: 'Impuestos, declaraciones, auditorías', precio: 45000, solicitudes: 8 }
     ],
 
     horarios: [
@@ -21,8 +21,8 @@ const appData = {
     },
 
     agendamientos: [
-        { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 150000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
-        { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 180000, estado: 'Confirmado', fechaCreacion: new Date() }
+        { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 25000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
+        { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 40000, estado: 'Confirmado', fechaCreacion: new Date() }
     ],
 
     resumenAgendamientos: {
@@ -30,7 +30,7 @@ const appData = {
         pendientes: 1,
         confirmados: 1,
         cancelados: 0,
-        ingresoTotal: 180000
+        ingresoTotal: 40000
     },
 
     usuarios: {
@@ -105,8 +105,8 @@ Object.defineProperty(appData, 'agendamientos', {
                 return (this._agendamientos || []).reduce(callback, initial);
             },
             _agendamientos: this._agendamientos || [
-                { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 150000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
-                { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 180000, estado: 'Confirmado', fechaCreacion: new Date() }
+                { id: 1, nombre: 'Carlos Sánchez', email: 'carlos@email.com', telefono: '+56 9 1111 1111', materia: 'Derecho Civil', descripcion: 'Consulta sobre contrato', fecha: '2026-03-25', hora: '10:00', monto: 25000, estado: 'Pendiente Pago', fechaCreacion: new Date() },
+                { id: 2, nombre: 'María González', email: 'maria@email.com', telefono: '+56 9 2222 2222', materia: 'Derecho de Familia', descripcion: 'Consulta sobre divorcio', fecha: '2026-03-26', hora: '14:00', monto: 40000, estado: 'Confirmado', fechaCreacion: new Date() }
             ]
         };
     },
